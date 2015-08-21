@@ -50,6 +50,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/spinner" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/outcome_text" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
