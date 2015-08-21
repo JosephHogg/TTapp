@@ -129,12 +129,12 @@ public class NewGameActivity extends Activity {
 
             if(score.equals("2-0") || score.equals("2-1")){
 
-                outcome.setText(Html.fromHtml("<font color=green>"+chal_name+"<font color=black>"+
-                        " beats "+"<font color=red>"+oppo_name+" "+"<font color=black>"+score));
+                outcome.setText(Html.fromHtml("<font color=green>"+chal_name+"</font>"+"<font color=black>"+
+                        " beats "+"</font>"+"<font color=red>"+oppo_name+" "+"</font>"+"<font color=black>"+score+"</font>"));
             }
             else{
-                outcome.setText(Html.fromHtml("<font color=green>"+oppo_name+"<font color=black>"+
-                        " beats "+"<font color=red>"+chal_name+" "+"<font color=black>"+score));
+                outcome.setText(Html.fromHtml("<font color=green>"+oppo_name+"</font>"+"<font color=black>"+
+                        " beats "+"</font>"+"<font color=red>"+chal_name+"</font>"+" "+"<font color=black>"+score+"</font>"));
             }
         }
         else{
@@ -172,13 +172,16 @@ public class NewGameActivity extends Activity {
         Context context = getApplicationContext();
         List<String> playerL = Arrays.asList(playerA);
 
-        if(score == "---"){
+        if(score.equals("---")){
 
-            Toast toast = Toast.makeText(context, "Please select valid score", Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(context, "Please select valid score", Toast.LENGTH_SHORT);
             toast.show();
 
             return false;
         }
+
+        if(!playerL.contains(chal_name) || !playerL.contains(oppo_name))
+            return false;
 
         int c_pos = playerL.indexOf(chal_name);
         int o_pos = playerL.indexOf(oppo_name);
