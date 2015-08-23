@@ -95,7 +95,7 @@ public class NewGameActivity extends Activity {
             public void afterTextChanged(Editable s) {
                 if (s.length() > 2 & !Arrays.asList(playerList).contains(s.toString())) {
                     oppo_text.setText(s.subSequence(0, 2));
-                    oppo_text.setSelection(chal_text.getText().length());
+                    oppo_text.setSelection(oppo_text.getText().length());
                 }
                 attemptDisplayMatch(spinner, chal_text, oppo_text);
             }
@@ -172,10 +172,23 @@ public class NewGameActivity extends Activity {
         Context context = getApplicationContext();
         List<String> playerL = Arrays.asList(playerA);
 
+        if(chal_name.equals(oppo_name)){
+
+            if (toasts) {
+                Toast toast = Toast.makeText(context, "A player cannot play a match against themselves.", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+
+            return false;
+
+        }
+
         if(score.equals("---")){
 
-            Toast toast = Toast.makeText(context, "Please select valid score", Toast.LENGTH_SHORT);
-            toast.show();
+            if (toasts) {
+                Toast toast = Toast.makeText(context, "Please select valid score", Toast.LENGTH_SHORT);
+                toast.show();
+            }
 
             return false;
         }
@@ -186,10 +199,12 @@ public class NewGameActivity extends Activity {
         int c_pos = playerL.indexOf(chal_name);
         int o_pos = playerL.indexOf(oppo_name);
 
-        if(c_pos < o_pos){
+        if(c_pos < o_pos) {
 
-            Toast toast = Toast.makeText(context, "A player cannot challenge somebody below them on the ladder", Toast.LENGTH_LONG);
-            toast.show();
+            if (toasts) {
+                Toast toast = Toast.makeText(context, "A player cannot challenge somebody below them on the ladder", Toast.LENGTH_LONG);
+                toast.show();
+            }
 
             return false;
         }
