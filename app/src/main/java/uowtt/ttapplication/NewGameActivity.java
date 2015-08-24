@@ -56,8 +56,7 @@ public class NewGameActivity extends Activity {
 
         playerA = playerList;
 
-        ArrayAdapter<String> auto_adapter = new ArrayAdapter<String>(this,
-                R.layout.support_simple_spinner_dropdown_item, playerList);
+        AutoCompleteAdapter auto_adapter = new AutoCompleteAdapter(this.getApplicationContext(), playerList);
         chal_text.setAdapter(auto_adapter);
         oppo_text.setAdapter(auto_adapter);
 
