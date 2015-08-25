@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,9 @@ public class Ladder{
     private List<Player> ladderData;
     public int tot_matches;
     public int num_players;
+    public int week_matches;
+    public int last_week_reset_day;
+
 
     Ladder(){
 
@@ -35,6 +39,11 @@ public class Ladder{
         ladderData = Arrays.asList(players);
 
         tot_matches = 0;
+
+        Calendar c = Calendar.getInstance();
+
+        week_matches = 0;
+        last_week_reset_day = c.get(Calendar.DATE);
     }
 
     public Player[] getLadderData(){
@@ -97,9 +106,27 @@ public class Ladder{
         return player;
     }
 
+    public void check_week(){
+
+        Calendar c = Calendar.getInstance();
+
+        Log.d("date", new Integer(c.get(Calendar.DAY_OF_YEAR)).toString());
+
+        // <0 for case of crossing the new year
+
+        if((c.get(Calendar.DAY_OF_YEAR) - last_week_reset_day) > 7 || (c.get(Calendar.DAY_OF_YEAR) - last_week_reset_day) < 0){
+
+            last_week_reset_day = c.get(Calendar.DAY_OF_YEAR);
+            week_matches = 0;
+
+        }
+
+    }
+
     public void update(Match match){
 
         tot_matches++;
+        week_matches++;
 
         Player chal = match.challenger;
         Player oppo = match.opponent;

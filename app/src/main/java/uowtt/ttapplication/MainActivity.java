@@ -46,6 +46,8 @@ public class MainActivity extends Activity {
         else
             ladder = ladderFragment.getData();
 
+        ladder.check_week();
+
         Log.d("Checks", "onCreate Main Activity");
     }
 
@@ -62,6 +64,9 @@ public class MainActivity extends Activity {
 
         ListView ladView = (ListView) findViewById(R.id.ladderList);
         ladView.setAdapter(lad_adapter);
+
+        TextView w_matches = (TextView) findViewById(R.id.textView3);
+        w_matches.setText(new Integer(ladder.week_matches).toString());
 
         Log.d("Checks", "onResume Main Activity");
     }
