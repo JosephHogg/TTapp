@@ -3,7 +3,9 @@ package uowtt.ttapplication;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,15 +13,37 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.MetadataChangeSet;
+
+
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private Ladder ladder;
     private LadderDataFragment ladderFragment;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +51,16 @@ public class MainActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         super.onCreate(savedInstanceState);
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .addScope(Drive.SCOPE_APPFOLDER)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+
 
         setContentView(R.layout.activity_main);
 
@@ -49,6 +83,27 @@ public class MainActivity extends Activity {
         ladder.check_week();
 
         Log.d("Checks", "onCreate Main Activity");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+
+        if (!result.hasResolution()) {
+            // show the localized error dialog.
+            GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 0).show();
+            return;
+        }
+        try {
+            result.startResolutionForResult(this, 2);
+        } catch (IntentSender.SendIntentException e) {
+
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -209,8 +264,117 @@ public class MainActivity extends Activity {
                 return;
             }
         }
+        if(requestCode == 2 & resultCode == RESULT_OK){
+
+            mGoogleApiClient.connect();
+        }
     }
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+
+        final ResultCallback<DriveApi.DriveIdResult> idCallback = new ResultCallback<DriveApi.DriveIdResult>() {
+            @Override
+            public void onResult(DriveApi.DriveIdResult result) {
+                if (!result.getStatus().isSuccess()) {
+                    showMessage("Cannot find DriveId. Are you authorized to view this file?");
+                    return;
+                }
+                DriveFile file = Drive.DriveApi.getFile(getGoogleApiClient(), result.getDriveId());
+                new EditContentsAsyncTask(MainActivity.this).execute(file);
+            }
+        };
+        Drive.DriveApi.fetchDriveId(getGoogleApiClient(), "0BwftsCVGDOiwSXZQcUd4LWhLOEU")
+                .setResultCallback(idCallback);
+    }
+
+    public class EditContentsAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
+
+        public EditContentsAsyncTask(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected Boolean doInBackgroundConnected(DriveFile... args) {
+            DriveFile file = args[0];
+            try {
+                DriveApi.DriveContentsResult driveContentsResult = file.open(
+                        getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null).await();
+                if (!driveContentsResult.getStatus().isSuccess()) {
+                    return false;
+                }
+                DriveContents driveContents = driveContentsResult.getDriveContents();
+                OutputStream outputStream = driveContents.getOutputStream();
+                outputStream.write("Hello garblegarblegarble".getBytes());
+                com.google.android.gms.common.api.Status status =
+                        driveContents.commit(getGoogleApiClient(), null).await();
+                return status.getStatus().isSuccess();
+            } catch (IOException e) {
+
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
+                showMessage("Error while editing contents");
+                return;
+            }
+            showMessage("Successfully edited contents");
+        }
+    }
+
+    final private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback = new
+            ResultCallback<DriveApi.DriveContentsResult>() {
+                @Override
+                public void onResult(DriveApi.DriveContentsResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create new file contents");
+                        return;
+                    }
+                    final DriveContents driveContents = result.getDriveContents();
+
+                    // Perform I/O off the UI thread.
+                    new Thread() {
+                        @Override
+                        public void run() {
+
+                        }
+                    }.start();
+                }
+            };
+
+    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
+            ResultCallback<DriveFolder.DriveFileResult>() {
+                @Override
+                public void onResult(DriveFolder.DriveFileResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create the file");
+                        return;
+                    }
+                    showMessage("Created a file with content: " + result.getDriveFile().getDriveId());
+                }
+            };
+
+    /**
+     * Shows a toast message.
+     */
+    public void showMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Getter for the {@code GoogleApiClient}.
+     */
+    public GoogleApiClient getGoogleApiClient() {
+        return mGoogleApiClient;
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
 }
 
 class LadderDataFragment extends Fragment{
