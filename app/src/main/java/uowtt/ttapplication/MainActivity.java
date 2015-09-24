@@ -1,6 +1,7 @@
 package uowtt.ttapplication;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -25,6 +26,9 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 
 
 import org.json.JSONObject;
@@ -273,19 +277,70 @@ public class MainActivity extends Activity implements
     @Override
     public void onConnected(Bundle connectionHint) {
 
-        final ResultCallback<DriveApi.DriveIdResult> idCallback = new ResultCallback<DriveApi.DriveIdResult>() {
+        final ResultCallback<DriveFolder.DriveFileResult> nfCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
+
             @Override
-            public void onResult(DriveApi.DriveIdResult result) {
+            public void onResult(DriveFolder.DriveFileResult result) {
                 if (!result.getStatus().isSuccess()) {
                     showMessage("Cannot find DriveId. Are you authorized to view this file?");
                     return;
                 }
-                DriveFile file = Drive.DriveApi.getFile(getGoogleApiClient(), result.getDriveId());
-                new EditContentsAsyncTask(MainActivity.this).execute(file);
+
             }
         };
-        Drive.DriveApi.fetchDriveId(getGoogleApiClient(), "0BwftsCVGDOiwSXZQcUd4LWhLOEU")
-                .setResultCallback(idCallback);
+
+        final ResultCallback<DriveApi.DriveContentsResult> contentsCallback = new
+                ResultCallback<DriveApi.DriveContentsResult>() {
+                    @Override
+                    public void onResult(DriveApi.DriveContentsResult result) {
+                        if (!result.getStatus().isSuccess()) {
+                            // Handle error
+                            return;
+                        }
+
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("samp_ladder.json")
+                                .setMimeType("application/json").build();
+                        // Create a file in the root folder
+                        Drive.DriveApi.getRootFolder(getGoogleApiClient())
+                                .createFile(getGoogleApiClient(), changeSet, null)
+                                .setResultCallback(nfCallback);
+                    }
+                };
+
+
+        final ResultCallback<DriveApi.MetadataBufferResult> qCallback = new ResultCallback<DriveApi.MetadataBufferResult>() {
+
+
+            @Override
+            public void onResult(DriveApi.MetadataBufferResult result) {
+                if (!result.getStatus().isSuccess()) {
+                    showMessage("Cannot find DriveId. Are you authorized to view this file?");
+                    return;
+                }
+
+                Log.d("metadata", Integer.toString(result.getMetadataBuffer().getCount()));
+
+                if(result.getMetadataBuffer().getCount() == 0){
+
+                    Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
+                }
+
+                //DriveFile file = Drive.DriveApi.getFile(getGoogleApiClient(), result.getDriveId());
+                //new EditContentsAsyncTask(MainActivity.this).execute(file);
+            }
+        };
+
+
+
+        //Drive.DriveApi.fetchDriveId(getGoogleApiClient(), "0BwftsCVGDOiwSXZQcUd4LWhLOEU")
+        //        .setResultCallback(idCallback);
+
+        Query query = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "samp_ladder.json"))
+                .build();
+        Drive.DriveApi.requestSync(mGoogleApiClient);
+        Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(qCallback);
     }
 
     public class EditContentsAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {

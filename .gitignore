@@ -6,6 +6,8 @@
 /build
 /captures
 
+key.txt
+
 #built application files
 *.apk
 *.ap_
