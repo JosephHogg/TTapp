@@ -19,23 +19,30 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +80,8 @@ public class MainActivity extends Activity implements
         ladderFragment = (LadderDataFragment) fm.findFragmentByTag("ladder");
 
         if(ladderFragment == null){
-            testLadderSetup();
+            //testLadderSetup();
+            ladder = new Ladder();
 
             ladderFragment = new LadderDataFragment();
 
@@ -113,19 +121,6 @@ public class MainActivity extends Activity implements
     @Override
     protected void onResume(){
         super.onResume();
-
-        List<Player> playerList = ladder.getLadderList();
-
-        LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
-                                                playerList);
-
-        populateStreaks();
-
-        ListView ladView = (ListView) findViewById(R.id.ladderList);
-        ladView.setAdapter(lad_adapter);
-
-        TextView w_matches = (TextView) findViewById(R.id.textView3);
-        w_matches.setText(new Integer(ladder.week_matches).toString());
 
         Log.d("Checks", "onResume Main Activity");
     }
@@ -309,6 +304,53 @@ public class MainActivity extends Activity implements
                 };
 
 
+        final ResultCallback<DriveApi.DriveContentsResult> jsonCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
+            @Override
+            public void onResult(DriveApi.DriveContentsResult contentsResult) {
+                DriveContents contents = contentsResult.getDriveContents();
+
+                InputStream input = contents.getInputStream();
+                JSONObject json = null;
+                /*try {
+                    Log.d("input", Integer.toString(input.read()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }*/
+
+                BufferedReader streamReader = null;
+                try {
+                    streamReader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                StringBuilder responseStrBuilder = new StringBuilder();
+
+                String inputStr;
+                try {
+                    while ((inputStr = streamReader.readLine()) != null) {
+                        responseStrBuilder.append(inputStr);
+                        Log.d("strings", inputStr);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    json = new JSONObject(responseStrBuilder.toString());
+                    Log.d("JSON", json.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    ladder.load(json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                setupList();
+            }
+        };
+
         final ResultCallback<DriveApi.MetadataBufferResult> qCallback = new ResultCallback<DriveApi.MetadataBufferResult>() {
 
 
@@ -321,26 +363,40 @@ public class MainActivity extends Activity implements
 
                 Log.d("metadata", Integer.toString(result.getMetadataBuffer().getCount()));
 
-                if(result.getMetadataBuffer().getCount() == 0){
+                if (result.getMetadataBuffer().getCount() == 0) {
 
                     Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
-                }
+                } else {
+                    Metadata meta = result.getMetadataBuffer().get(0);
 
-                //DriveFile file = Drive.DriveApi.getFile(getGoogleApiClient(), result.getDriveId());
-                //new EditContentsAsyncTask(MainActivity.this).execute(file);
+                    DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
+                    file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(jsonCallback);
+
+                }
             }
         };
-
-
-
-        //Drive.DriveApi.fetchDriveId(getGoogleApiClient(), "0BwftsCVGDOiwSXZQcUd4LWhLOEU")
-        //        .setResultCallback(idCallback);
 
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, "samp_ladder.json"))
                 .build();
         Drive.DriveApi.requestSync(mGoogleApiClient);
         Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(qCallback);
+    }
+
+    private void setupList() {
+
+        List<Player> playerList = ladder.getLadderList();
+
+        LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
+                playerList);
+
+        populateStreaks();
+
+        ListView ladView = (ListView) findViewById(R.id.ladderList);
+        ladView.setAdapter(lad_adapter);
+
+        TextView w_matches = (TextView) findViewById(R.id.textView3);
+        w_matches.setText(new Integer(ladder.week_matches).toString());
     }
 
     public class EditContentsAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {

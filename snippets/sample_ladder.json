@@ -4,6 +4,7 @@
     
       {
         "name": "Joseph Hogg",
+        "standing": 4,
         "totalGames": 3,
         "wins": 0,
         "losses": 3,
@@ -14,6 +15,7 @@
       },
       {
         "name": "Elliott Hogg",
+        "standing": 1,
         "totalGames": 2,
         "wins": 2,
         "losses": 0,
@@ -24,6 +26,7 @@
       },
       {
         "name": "William Hogg",
+        "standing": 2,
         "totalGames": 2,
         "wins": 1,
         "losses": 1,
@@ -34,6 +37,7 @@
       },
       {
         "name": "Megan Farrow Griffiths",
+        "standing": 3,
         "totalGames": 1,
         "wins": 1,
         "losses": 0,

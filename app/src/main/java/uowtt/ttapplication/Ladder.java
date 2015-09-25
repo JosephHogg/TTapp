@@ -2,6 +2,10 @@ package uowtt.ttapplication;
 
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -23,7 +27,7 @@ public class Ladder{
 
     Ladder(){
 
-        num_players = 0;
+        /*num_players = 0;
 
         String[] names = new String[] {"Peco", "Tsukimoto", "Kong", "Kazama", "Joseph",
                                       "Elliott", "William", "Megan", "Player A", "Player B"};
@@ -36,8 +40,11 @@ public class Ladder{
             num_players++;
         }
 
-        ladderData = Arrays.asList(players);
+        ladderData = Arrays.asList(players);*/
 
+        ladderData = new ArrayList();
+
+        num_players = 0;
         tot_matches = 0;
 
         Calendar c = Calendar.getInstance();
@@ -158,4 +165,34 @@ public class Ladder{
         }
     }
 
+    public void load(JSONObject json) throws JSONException {
+
+        JSONArray playerArray = json.getJSONArray("players");
+
+        for(int i =0; i<playerArray.length(); i++){
+            num_players++;
+            addPlayer(playerArray.getJSONObject(i));
+        }
+    }
+
+    private void addPlayer(JSONObject jsonObject) {
+
+        int[] change = new int[3];
+
+        try {
+            JSONArray jChange = jsonObject.getJSONArray("change");
+
+            for (int i = 0; i < 3; i++)
+                change[i] = jChange.getInt(i);
+
+            Player player = new Player(jsonObject.getString("name"), jsonObject.getInt("standing"),
+                    jsonObject.getInt("currentStreak"), jsonObject.getInt("wins"),
+                    jsonObject.getInt("losses"), change);
+            ladderData.add(player);
+        }
+        catch(JSONException e){
+
+        }
+
+    }
 }

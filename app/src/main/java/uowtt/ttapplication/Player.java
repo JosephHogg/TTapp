@@ -6,22 +6,20 @@ package uowtt.ttapplication;
 public class Player {
 
     String name;
-    int id;
     int streak;
     int wins;
     int losses;
     int standing;
     int[] change;
 
-    Player(String player_name, int p_id, int p_standing){
+    Player(String player_name, int standing, int streak, int wins, int losses, int[] change){
 
-        name = player_name;
-        id = p_id;
-        streak = 0;
-        wins = 0;
-        losses = 0;
-        change = new int[3];
-        standing = p_standing;
+        this.name = player_name;
+        this.streak = streak;
+        this.wins = wins;
+        this.losses = losses;
+        this.change = change;
+        this.standing = standing;
     }
 
     public void update_stats(boolean win, int new_standing){
