@@ -45,6 +45,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -231,6 +232,13 @@ public class MainActivity extends Activity implements
             DriveContents contents = contentsResult.getDriveContents();
 
             OutputStream out = contents.getOutputStream();
+
+            // Update json timestamp
+            try {
+                ladderJSON.put("timestamp", new Date().toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
             try {
                 out.write(ladderJSON.toString().getBytes());
