@@ -188,7 +188,7 @@ public class MainActivity extends Activity implements
 
             if(score.equals("2-0") || score.equals("2-1")){
                 try {
-                    match = new Match(chal, oppo, true);
+                    match = new Match(chal, oppo, true, score);
                 }
                 catch(Exception ignore){
                 }
@@ -196,7 +196,7 @@ public class MainActivity extends Activity implements
             else if(score.equals("0-2") || score.equals("1-2")){
 
                 try {
-                    match = new Match(chal, oppo, false);
+                    match = new Match(chal, oppo, false, score);
                 }
                 catch(Exception ignore){
                 }

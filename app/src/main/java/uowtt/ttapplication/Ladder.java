@@ -136,6 +136,7 @@ public class Ladder{
         week_matches++;
 
         JSONArray players = null;
+        JSONArray matches = null;
 
         Player chal = match.challenger;
         Player oppo = match.opponent;
@@ -147,6 +148,7 @@ public class Ladder{
 
         try {
             players = ladderJSON.getJSONArray("players");
+            matches = ladderJSON.getJSONArray("matches");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -182,6 +184,9 @@ public class Ladder{
         }
 
         try {
+            Log.d("match json", match.toJSONObject().toString());
+            matches.put(match.toJSONObject());
+            ladderJSON.put("matches", matches);
             ladderJSON.put("players", players);
         } catch (JSONException e) {
             e.printStackTrace();
