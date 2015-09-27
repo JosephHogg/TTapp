@@ -2,6 +2,10 @@ package uowtt.ttapplication;
 
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -23,7 +27,7 @@ public class Ladder{
 
     Ladder(){
 
-        num_players = 0;
+        /*num_players = 0;
 
         String[] names = new String[] {"Peco", "Tsukimoto", "Kong", "Kazama", "Joseph",
                                       "Elliott", "William", "Megan", "Player A", "Player B"};
@@ -36,8 +40,11 @@ public class Ladder{
             num_players++;
         }
 
-        ladderData = Arrays.asList(players);
+        ladderData = Arrays.asList(players);*/
 
+        ladderData = new ArrayList();
+
+        num_players = 0;
         tot_matches = 0;
 
         Calendar c = Calendar.getInstance();
@@ -123,10 +130,13 @@ public class Ladder{
 
     }
 
-    public void update(Match match){
+    public void update(JSONObject ladderJSON, Match match){
 
         tot_matches++;
         week_matches++;
+
+        JSONArray players = null;
+        JSONArray matches = null;
 
         Player chal = match.challenger;
         Player oppo = match.opponent;
@@ -136,6 +146,12 @@ public class Ladder{
         int chal_pos = ladderData.indexOf(chal);
         int oppo_pos = ladderData.indexOf(oppo);
 
+        try {
+            players = ladderJSON.getJSONArray("players");
+            matches = ladderJSON.getJSONArray("matches");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         Log.d("Match:", chal.name + " plays " + oppo.name);
 
@@ -144,7 +160,12 @@ public class Ladder{
             chal.update_stats(winner, chal_pos);
             oppo.update_stats(!winner, oppo_pos);
 
-            return;
+            try {
+                players.put(chal.jsonIndex, chal.toJSONObject());
+                players.put(oppo.jsonIndex, oppo.toJSONObject());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else {
 
@@ -154,8 +175,62 @@ public class Ladder{
             ladderData.set(chal_pos, oppo);
             ladderData.set(oppo_pos, chal);
 
-            return;
+            try {
+                players.put(chal.jsonIndex, chal.toJSONObject());
+                players.put(oppo.jsonIndex, oppo.toJSONObject());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            Log.d("match json", match.toJSONObject().toString());
+            matches.put(match.toJSONObject());
+            ladderJSON.put("matches", matches);
+            ladderJSON.put("players", players);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
+    public void load(JSONObject json) throws JSONException {
+
+        ladderData = new ArrayList<>();
+
+        JSONArray playerArray = json.getJSONArray("players");
+
+        for(int i =0; i<playerArray.length(); i++){
+            num_players++;
+            addPlayer(i, playerArray.getJSONObject(i));
+        }
+
+        //Sort player list into order of player position
+
+        Collections.sort(ladderData, new Comparator<Player>() {
+            @Override
+            public int compare(Player lhs, Player rhs) {
+                return lhs.standing > rhs.standing ? 1:-1;
+            }
+        });
+    }
+
+    private void addPlayer(int index, JSONObject jsonObject) {
+
+        int[] change = new int[3];
+
+        try {
+            JSONArray jChange = jsonObject.getJSONArray("change");
+
+            for (int i = 0; i < 3; i++)
+                change[i] = jChange.getInt(i);
+
+            Player player = new Player(index, jsonObject.getString("name"), jsonObject.getInt("standing"),
+                    jsonObject.getInt("currentStreak"), jsonObject.getInt("wins"),
+                    jsonObject.getInt("losses"), change);
+            ladderData.add(player);
+        }
+        catch(JSONException e){
+
+        }
+    }
 }

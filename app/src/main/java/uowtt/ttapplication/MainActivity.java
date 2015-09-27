@@ -1,9 +1,12 @@
 package uowtt.ttapplication;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,15 +14,51 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private Ladder ladder;
     private LadderDataFragment ladderFragment;
+    private GoogleApiClient mGoogleApiClient;
+    private DriveContents jsonContents;
+    private JSONObject ladderJSON;
+    private Metadata meta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +67,16 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .addScope(Drive.SCOPE_APPFOLDER)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+
+
         setContentView(R.layout.activity_main);
 
         FragmentManager fm = getFragmentManager();
@@ -35,7 +84,8 @@ public class MainActivity extends Activity {
         ladderFragment = (LadderDataFragment) fm.findFragmentByTag("ladder");
 
         if(ladderFragment == null){
-            testLadderSetup();
+            //testLadderSetup();
+            ladder = new Ladder();
 
             ladderFragment = new LadderDataFragment();
 
@@ -52,21 +102,29 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onConnectionFailed(ConnectionResult result) {
+
+        if (!result.hasResolution()) {
+            // show the localized error dialog.
+            GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 0).show();
+            return;
+        }
+        try {
+            result.startResolutionForResult(this, 2);
+        } catch (IntentSender.SendIntentException e) {
+
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
     protected void onResume(){
         super.onResume();
-
-        List<Player> playerList = ladder.getLadderList();
-
-        LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
-                                                playerList);
-
-        populateStreaks();
-
-        ListView ladView = (ListView) findViewById(R.id.ladderList);
-        ladView.setAdapter(lad_adapter);
-
-        TextView w_matches = (TextView) findViewById(R.id.textView3);
-        w_matches.setText(new Integer(ladder.week_matches).toString());
 
         Log.d("Checks", "onResume Main Activity");
     }
@@ -82,68 +140,6 @@ public class MainActivity extends Activity {
         streak1.setText(streaks[0].streak+", "+streaks[0].name);
         streak2.setText(streaks[1].streak + ", " + streaks[1].name);
         streak3.setText(streaks[2].streak + ", " + streaks[2].name);
-    }
-
-    private void testLadderSetup(){
-        ladder = new Ladder();
-
-        List<Player> playerList = ladder.getLadderList();
-
-        Player p0 = playerList.get(0);
-        Player p1 = playerList.get(1);
-        Player p2 = playerList.get(2);
-        Player p3 = playerList.get(3);
-        Player p4 = playerList.get(4);
-
-        try {
-            ladder.update(new Match(p1, p2, true));
-        }
-        catch(Exception e){
-            Log.d("Except:", e.getMessage());
-        }
-        try {
-            ladder.update(new Match(p2, p1, true));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p4, p1, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p3, p2, true));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p1, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p2, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p3, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p4, p0, false));
-        }
-        catch(Exception e){
-
-        }
-
     }
 
     @Override
@@ -177,6 +173,8 @@ public class MainActivity extends Activity {
             String oppo_name = data.getStringExtra("oppo");
             String score = data.getStringExtra("score");
 
+            Match match = null;
+
             Log.d("caveman", "Got result " + chal_name + oppo_name + score);
 
             try {
@@ -191,7 +189,7 @@ public class MainActivity extends Activity {
 
             if(score.equals("2-0") || score.equals("2-1")){
                 try {
-                    ladder.update(new Match(chal, oppo, true));
+                    match = new Match(chal, oppo, true, score);
                 }
                 catch(Exception ignore){
                 }
@@ -199,7 +197,7 @@ public class MainActivity extends Activity {
             else if(score.equals("0-2") || score.equals("1-2")){
 
                 try {
-                    ladder.update(new Match(chal, oppo, false));
+                    match = new Match(chal, oppo, false, score);
                 }
                 catch(Exception ignore){
                 }
@@ -208,9 +206,202 @@ public class MainActivity extends Activity {
                 Log.d("Conflict", "Invalid score... "+score);
                 return;
             }
+
+            ladder.update(ladderJSON, match);
+            new UpdateJSONAsyncTask(this.getApplicationContext()).execute();
+            setupList();
+        }
+        if(requestCode == 2 & resultCode == RESULT_OK)
+            mGoogleApiClient.connect();
+
+    }
+
+    public class UpdateJSONAsyncTask extends ApiClientAsyncTask<JSONObject, Void, Boolean> {
+
+        public UpdateJSONAsyncTask(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected Boolean doInBackgroundConnected(JSONObject... args) {
+
+
+            DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
+            DriveApi.DriveContentsResult contentsResult = file.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+
+            DriveContents contents = contentsResult.getDriveContents();
+
+            OutputStream out = contents.getOutputStream();
+
+            // Update json timestamp
+            try {
+                ladderJSON.put("timestamp", new Date().toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                out.write(ladderJSON.toString().getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            com.google.android.gms.common.api.Status status =
+                    contents.commit(mGoogleApiClient, null).await();
+            return status.getStatus().isSuccess();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
+                showMessage("Error while editing contents");
+                return;
+            }
+            showMessage("Successfully edited contents");
         }
     }
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+
+        final ResultCallback<DriveApi.DriveContentsResult> contentsCallback = new
+                ResultCallback<DriveApi.DriveContentsResult>() {
+                    @Override
+                    public void onResult(DriveApi.DriveContentsResult result) {
+                        if (!result.getStatus().isSuccess()) {
+                            // Handle error
+                            return;
+                        }
+
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("samp_ladder.json")
+                                .setMimeType("application/json").build();
+                        // Create a file in the root folder
+                        Drive.DriveApi.getRootFolder(getGoogleApiClient())
+                                .createFile(getGoogleApiClient(), changeSet, null);
+                    }
+                };
+
+
+        final ResultCallback<DriveApi.DriveContentsResult> jsonCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
+            @Override
+            public void onResult(DriveApi.DriveContentsResult contentsResult) {
+                jsonContents = contentsResult.getDriveContents();
+
+                InputStream input = jsonContents.getInputStream();
+
+                BufferedReader streamReader = null;
+                try {
+                    streamReader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                StringBuilder responseStrBuilder = new StringBuilder();
+
+                String inputStr;
+                try {
+                    while ((inputStr = streamReader.readLine()) != null) {
+                        responseStrBuilder.append(inputStr);
+                        Log.d("strings", inputStr);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    ladderJSON = new JSONObject(responseStrBuilder.toString());
+                    Log.d("JSON", ladderJSON.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    ladder.load(ladderJSON);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                setupList();
+            }
+        };
+
+        final ResultCallback<DriveApi.MetadataBufferResult> qCallback = new ResultCallback<DriveApi.MetadataBufferResult>() {
+
+
+            @Override
+            public void onResult(DriveApi.MetadataBufferResult result) {
+                if (!result.getStatus().isSuccess()) {
+                    showMessage("Cannot find DriveId. Are you authorized to view this file?");
+                    return;
+                }
+
+                Log.d("metadata", Integer.toString(result.getMetadataBuffer().getCount()));
+
+                if (result.getMetadataBuffer().getCount() == 0) {
+
+                    Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
+                } else {
+                    meta = result.getMetadataBuffer().get(0);
+
+                    DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
+                    file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(jsonCallback);
+
+                }
+            }
+        };
+
+        Query query = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "samp_ladder.json"))
+                .build();
+        Drive.DriveApi.requestSync(mGoogleApiClient);
+        Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(qCallback);
+    }
+
+    private void setupList() {
+
+        List<Player> playerList = ladder.getLadderList();
+
+        LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
+                playerList);
+
+        populateStreaks();
+
+        ListView ladView = (ListView) findViewById(R.id.ladderList);
+        ladView.setAdapter(lad_adapter);
+
+        TextView w_matches = (TextView) findViewById(R.id.textView3);
+        w_matches.setText(new Integer(ladder.week_matches).toString());
+    }
+
+    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
+            ResultCallback<DriveFolder.DriveFileResult>() {
+                @Override
+                public void onResult(DriveFolder.DriveFileResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create the file");
+                        return;
+                    }
+                    showMessage("Created a file with content: " + result.getDriveFile().getDriveId());
+                }
+            };
+
+    /**
+     * Shows a toast message.
+     */
+    public void showMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Getter for the {@code GoogleApiClient}.
+     */
+    public GoogleApiClient getGoogleApiClient() {
+        return mGoogleApiClient;
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
 }
 
 class LadderDataFragment extends Fragment{
