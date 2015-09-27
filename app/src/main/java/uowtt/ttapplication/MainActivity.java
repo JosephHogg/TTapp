@@ -55,6 +55,9 @@ public class MainActivity extends Activity implements
     private Ladder ladder;
     private LadderDataFragment ladderFragment;
     private GoogleApiClient mGoogleApiClient;
+    private DriveContents jsonContents;
+    private JSONObject ladderJSON;
+    private Metadata meta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,68 +141,6 @@ public class MainActivity extends Activity implements
         streak3.setText(streaks[2].streak + ", " + streaks[2].name);
     }
 
-    private void testLadderSetup(){
-        ladder = new Ladder();
-
-        List<Player> playerList = ladder.getLadderList();
-
-        Player p0 = playerList.get(0);
-        Player p1 = playerList.get(1);
-        Player p2 = playerList.get(2);
-        Player p3 = playerList.get(3);
-        Player p4 = playerList.get(4);
-
-        try {
-            ladder.update(new Match(p1, p2, true));
-        }
-        catch(Exception e){
-            Log.d("Except:", e.getMessage());
-        }
-        try {
-            ladder.update(new Match(p2, p1, true));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p4, p1, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p3, p2, true));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p1, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p2, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p3, p0, false));
-        }
-        catch(Exception e){
-
-        }
-        try {
-            ladder.update(new Match(p4, p0, false));
-        }
-        catch(Exception e){
-
-        }
-
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -231,6 +172,8 @@ public class MainActivity extends Activity implements
             String oppo_name = data.getStringExtra("oppo");
             String score = data.getStringExtra("score");
 
+            Match match = null;
+
             Log.d("caveman", "Got result " + chal_name + oppo_name + score);
 
             try {
@@ -245,7 +188,7 @@ public class MainActivity extends Activity implements
 
             if(score.equals("2-0") || score.equals("2-1")){
                 try {
-                    ladder.update(new Match(chal, oppo, true));
+                    match = new Match(chal, oppo, true);
                 }
                 catch(Exception ignore){
                 }
@@ -253,7 +196,7 @@ public class MainActivity extends Activity implements
             else if(score.equals("0-2") || score.equals("1-2")){
 
                 try {
-                    ladder.update(new Match(chal, oppo, false));
+                    match = new Match(chal, oppo, false);
                 }
                 catch(Exception ignore){
                 }
@@ -262,27 +205,56 @@ public class MainActivity extends Activity implements
                 Log.d("Conflict", "Invalid score... "+score);
                 return;
             }
-        }
-        if(requestCode == 2 & resultCode == RESULT_OK){
 
+            ladder.update(ladderJSON, match);
+            new UpdateJSONAsyncTask(this.getApplicationContext()).execute();
+            setupList();
+        }
+        if(requestCode == 2 & resultCode == RESULT_OK)
             mGoogleApiClient.connect();
+
+    }
+
+    public class UpdateJSONAsyncTask extends ApiClientAsyncTask<JSONObject, Void, Boolean> {
+
+        public UpdateJSONAsyncTask(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected Boolean doInBackgroundConnected(JSONObject... args) {
+
+
+            DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
+            DriveApi.DriveContentsResult contentsResult = file.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+
+            DriveContents contents = contentsResult.getDriveContents();
+
+            OutputStream out = contents.getOutputStream();
+
+            try {
+                out.write(ladderJSON.toString().getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            com.google.android.gms.common.api.Status status =
+                    contents.commit(mGoogleApiClient, null).await();
+            return status.getStatus().isSuccess();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
+                showMessage("Error while editing contents");
+                return;
+            }
+            showMessage("Successfully edited contents");
         }
     }
 
     @Override
     public void onConnected(Bundle connectionHint) {
-
-        final ResultCallback<DriveFolder.DriveFileResult> nfCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
-
-            @Override
-            public void onResult(DriveFolder.DriveFileResult result) {
-                if (!result.getStatus().isSuccess()) {
-                    showMessage("Cannot find DriveId. Are you authorized to view this file?");
-                    return;
-                }
-
-            }
-        };
 
         final ResultCallback<DriveApi.DriveContentsResult> contentsCallback = new
                 ResultCallback<DriveApi.DriveContentsResult>() {
@@ -298,8 +270,7 @@ public class MainActivity extends Activity implements
                                 .setMimeType("application/json").build();
                         // Create a file in the root folder
                         Drive.DriveApi.getRootFolder(getGoogleApiClient())
-                                .createFile(getGoogleApiClient(), changeSet, null)
-                                .setResultCallback(nfCallback);
+                                .createFile(getGoogleApiClient(), changeSet, null);
                     }
                 };
 
@@ -307,15 +278,9 @@ public class MainActivity extends Activity implements
         final ResultCallback<DriveApi.DriveContentsResult> jsonCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
             @Override
             public void onResult(DriveApi.DriveContentsResult contentsResult) {
-                DriveContents contents = contentsResult.getDriveContents();
+                jsonContents = contentsResult.getDriveContents();
 
-                InputStream input = contents.getInputStream();
-                JSONObject json = null;
-                /*try {
-                    Log.d("input", Integer.toString(input.read()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
+                InputStream input = jsonContents.getInputStream();
 
                 BufferedReader streamReader = null;
                 try {
@@ -335,14 +300,14 @@ public class MainActivity extends Activity implements
                     e.printStackTrace();
                 }
                 try {
-                    json = new JSONObject(responseStrBuilder.toString());
-                    Log.d("JSON", json.toString());
+                    ladderJSON = new JSONObject(responseStrBuilder.toString());
+                    Log.d("JSON", ladderJSON.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    ladder.load(json);
+                    ladder.load(ladderJSON);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -367,7 +332,7 @@ public class MainActivity extends Activity implements
 
                     Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
                 } else {
-                    Metadata meta = result.getMetadataBuffer().get(0);
+                    meta = result.getMetadataBuffer().get(0);
 
                     DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
                     file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(jsonCallback);
@@ -398,63 +363,6 @@ public class MainActivity extends Activity implements
         TextView w_matches = (TextView) findViewById(R.id.textView3);
         w_matches.setText(new Integer(ladder.week_matches).toString());
     }
-
-    public class EditContentsAsyncTask extends ApiClientAsyncTask<DriveFile, Void, Boolean> {
-
-        public EditContentsAsyncTask(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected Boolean doInBackgroundConnected(DriveFile... args) {
-            DriveFile file = args[0];
-            try {
-                DriveApi.DriveContentsResult driveContentsResult = file.open(
-                        getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null).await();
-                if (!driveContentsResult.getStatus().isSuccess()) {
-                    return false;
-                }
-                DriveContents driveContents = driveContentsResult.getDriveContents();
-                OutputStream outputStream = driveContents.getOutputStream();
-                outputStream.write("Hello garblegarblegarble".getBytes());
-                com.google.android.gms.common.api.Status status =
-                        driveContents.commit(getGoogleApiClient(), null).await();
-                return status.getStatus().isSuccess();
-            } catch (IOException e) {
-
-            }
-            return false;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            if (!result) {
-                showMessage("Error while editing contents");
-                return;
-            }
-            showMessage("Successfully edited contents");
-        }
-    }
-
-    final private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback = new
-            ResultCallback<DriveApi.DriveContentsResult>() {
-                @Override
-                public void onResult(DriveApi.DriveContentsResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        showMessage("Error while trying to create new file contents");
-                        return;
-                    }
-                    final DriveContents driveContents = result.getDriveContents();
-
-                    // Perform I/O off the UI thread.
-                    new Thread() {
-                        @Override
-                        public void run() {
-
-                        }
-                    }.start();
-                }
-            };
 
     final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
             ResultCallback<DriveFolder.DriveFileResult>() {
