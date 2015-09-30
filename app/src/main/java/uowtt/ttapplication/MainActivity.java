@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
@@ -98,7 +101,38 @@ public class MainActivity extends Activity implements
 
         ladder.check_week();
 
+        registerForContextMenu(findViewById(R.id.button3));
+
         Log.d("Checks", "onCreate Main Activity");
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        MenuInflater inflater = getMenuInflater();
+
+        inflater.inflate(R.menu.menu_main, menu);
+    }
+
+    public void contextMenu(View view){
+        openContextMenu(view);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_matches:
+                //Start match history activity
+            case R.id.action_settings:
+                //Start match settings activity
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
+
+    public void startStatsActivity(View v){
+        //Start the stats activity
     }
 
     @Override
@@ -133,13 +167,13 @@ public class MainActivity extends Activity implements
 
         Player[] streaks = ladder.getStreaksArray();
 
-        TextView streak1 = (TextView) findViewById(R.id.streak1);
-        TextView streak2 = (TextView) findViewById(R.id.streak2);
-        TextView streak3 = (TextView) findViewById(R.id.streak3);
+        //TextView streak1 = (TextView) findViewById(R.id.streak1);
+        //TextView streak2 = (TextView) findViewById(R.id.streak2);
+        //TextView streak3 = (TextView) findViewById(R.id.streak3);
 
-        streak1.setText(streaks[0].streak+", "+streaks[0].name);
-        streak2.setText(streaks[1].streak + ", " + streaks[1].name);
-        streak3.setText(streaks[2].streak + ", " + streaks[2].name);
+        //streak1.setText(streaks[0].streak+", "+streaks[0].name);
+        //streak2.setText(streaks[1].streak + ", " + streaks[1].name);
+        //streak3.setText(streaks[2].streak + ", " + streaks[2].name);
     }
 
     @Override
@@ -159,6 +193,7 @@ public class MainActivity extends Activity implements
 
         startActivityForResult(intent, 1);
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -363,13 +398,10 @@ public class MainActivity extends Activity implements
         LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
                 playerList);
 
-        populateStreaks();
 
         ListView ladView = (ListView) findViewById(R.id.ladderList);
         ladView.setAdapter(lad_adapter);
 
-        TextView w_matches = (TextView) findViewById(R.id.textView3);
-        w_matches.setText(new Integer(ladder.week_matches).toString());
     }
 
     final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
