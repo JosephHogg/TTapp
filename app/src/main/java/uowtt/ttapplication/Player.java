@@ -1,27 +1,31 @@
 package uowtt.ttapplication;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by Joseph on 16/08/2015.
  */
 public class Player {
 
+    int jsonIndex;
     String name;
-    int id;
     int streak;
     int wins;
     int losses;
     int standing;
     int[] change;
 
-    Player(String player_name, int p_id, int p_standing){
+    Player(int jsonIndex, String player_name, int standing, int streak, int wins, int losses, int[] change){
 
-        name = player_name;
-        id = p_id;
-        streak = 0;
-        wins = 0;
-        losses = 0;
-        change = new int[3];
-        standing = p_standing;
+        this.jsonIndex = jsonIndex;
+        this.name = player_name;
+        this.streak = streak;
+        this.wins = wins;
+        this.losses = losses;
+        this.change = change;
+        this.standing = standing;
     }
 
     public void update_stats(boolean win, int new_standing){
@@ -53,5 +57,27 @@ public class Player {
         change[1] = change [2];
         change[2] = diff;
 
+    }
+
+    public JSONObject toJSONObject(){
+
+        JSONObject json = new JSONObject();
+        JSONArray jChange = new JSONArray();
+
+        for(int i = 0; i<3; i++)
+            jChange.put(this.change[i]);
+
+        try {
+            json.put("name", this.name);
+            json.put("standing", this.standing);
+            json.put("wins", this.wins);
+            json.put("losses", this.losses);
+            json.put("currentStreak", this.streak);
+            json.put("change", jChange);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 }

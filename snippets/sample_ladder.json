@@ -1,0 +1,50 @@
+{
+  "timestamp": "24/09/2015 17:25",
+  "players": [
+    
+      {
+        "name": "Joseph Hogg",
+        "standing": 4,
+        "totalGames": 3,
+        "wins": 0,
+        "losses": 3,
+        "currentStreak": 0,
+        "change": [
+          -1, -1, -1
+        ]
+      },
+      {
+        "name": "Elliott Hogg",
+        "standing": 1,
+        "totalGames": 2,
+        "wins": 2,
+        "losses": 0,
+        "currentStreak": 2,
+        "change": [
+          0, 1, 0
+        ]
+      },
+      {
+        "name": "William Hogg",
+        "standing": 2,
+        "totalGames": 2,
+        "wins": 1,
+        "losses": 1,
+        "currentStreak": 0,
+        "change": [
+          0, 1, 0
+        ]
+      },
+      {
+        "name": "Megan Farrow Griffiths",
+        "standing": 3,
+        "totalGames": 1,
+        "wins": 1,
+        "losses": 0,
+        "currentStreak": 1,
+        "change": [
+          1, 0, 0
+        ]
+      }
+    ]
+}
