@@ -5,7 +5,7 @@
     android:layout_width="fill_parent">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="20dp"
         android:layout_height="50dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="0"
@@ -16,9 +16,17 @@
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text=": "
+        android:text="  "
         android:gravity="center"
         android:id="@+id/textView" />
+
+    <TextView
+        android:layout_width="40dp"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Medium Text"
+        android:id="@+id/change" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -30,11 +38,4 @@
         android:gravity="center"
         android:layout_gravity="clip_horizontal" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:id="@+id/change" />
 </LinearLayout>

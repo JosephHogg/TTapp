@@ -387,7 +387,7 @@ public class MainActivity extends Activity implements
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, "samp_ladder.json"))
                 .build();
-        Drive.DriveApi.requestSync(mGoogleApiClient);
+        //Drive.DriveApi.requestSync(mGoogleApiClient);
         Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(qCallback);
     }
 

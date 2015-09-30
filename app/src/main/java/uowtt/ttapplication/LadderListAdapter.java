@@ -20,6 +20,7 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
     Drawable grup;
     Drawable redown;
     Drawable nochange;
+    Drawable streak;
 
     public LadderListAdapter(Context context, int resource, List<Player> playerList) {
         super(context, resource, playerList);
@@ -29,6 +30,7 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
         this.grup = context.getResources().getDrawable(R.drawable.grup);
         this.redown = context.getResources().getDrawable(R.drawable.redown);
         this.nochange = context.getResources().getDrawable(R.drawable.nochange);
+        this.streak = context.getResources().getDrawable(R.drawable.streak);
 
         this.grup.setBounds(0,0,50,50);
         this.redown.setBounds(0, 0, 50, 50);
@@ -54,23 +56,23 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
         TextView name_view = (TextView) newView.findViewById(R.id.playername);
         TextView pos_view = (TextView) newView.findViewById(R.id.ladderposition);
         TextView change_view = (TextView) newView.findViewById(R.id.change);
-        if((position+1)%5 == 0)
+        //if((position+1)%5 == 0)
             pos_view.setText(new Integer(position+1).toString());
-        else
-            pos_view.setText(" ");
+        //else
+        //    pos_view.setText(" ");
         name_view.setText(player.name);
 
         if(change > 0) {
-            name_view.setCompoundDrawables(null, null, grup, null);
-            change_view.setText(new Integer(change).toString());
+            change_view.setCompoundDrawables(grup, null, null, null);
+            change_view.setText(new Integer(change).toString() + "  ");
         }
         if(change == 0) {
-            name_view.setCompoundDrawables(null, null, nochange, null);
-            change_view.setText("");
+            change_view.setCompoundDrawables(nochange, null, null, null);
+            change_view.setText("" + "  ");
         }
         if(change < 0) {
-            name_view.setCompoundDrawables(null, null, redown, null);
-            change_view.setText(new Integer(change).toString());
+            change_view.setCompoundDrawables(redown, null, null, null);
+            change_view.setText(new Integer(Math.abs(change)).toString() + "  ");
         }
 
 
