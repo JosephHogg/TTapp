@@ -209,9 +209,13 @@ public class Ladder{
         Collections.sort(ladderData, new Comparator<Player>() {
             @Override
             public int compare(Player lhs, Player rhs) {
-                return lhs.standing > rhs.standing ? 1:-1;
+                return lhs.standing > rhs.standing ? 1 : -1;
             }
         });
+
+        JSONArray matchesArray = json.getJSONArray("matches");
+
+        this.tot_matches = matchesArray.length();
     }
 
     private void addPlayer(int index, JSONObject jsonObject) {
@@ -232,5 +236,30 @@ public class Ladder{
         catch(JSONException e){
 
         }
+    }
+
+    public String[] highStreaksNames() {
+        //to be implemented
+        return new String[3];
+    }
+
+    public int[] highStreakValues() {
+        //to be implemented
+        return new int[3];
+    }
+
+    public Player[] sortByNumGames() {
+
+        Player[] sorted = ladderData.toArray(new Player[0]);
+
+        Arrays.sort(sorted, new Comparator<Player>() {
+            @Override
+            public int compare(Player player, Player t1) {
+                if ((player.wins + player.losses) > (t1.wins + t1.losses)) return 1;
+                else return -1;
+            }
+        });
+
+        return sorted;
     }
 }

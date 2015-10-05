@@ -133,6 +133,55 @@ public class MainActivity extends Activity implements
 
     public void startStatsActivity(View v){
         //Start the stats activity
+        Intent intent = new Intent(this, StatsActivity.class);
+        Bundle b = new Bundle();
+
+        //GET CURRENT STREAKS
+        Player[] currentStreaks = ladder.getStreaksArray();
+        String[] names = new String[4];
+        int[] streaks = new int[4];
+
+        names[0] = currentStreaks[0].name;
+        streaks[0] = currentStreaks[0].streak;
+        names[1] = currentStreaks[1].name;
+        streaks[1] = currentStreaks[1].streak;
+        names[2] = currentStreaks[2].name;
+        streaks[2] = currentStreaks[2].streak;
+        names[3] = currentStreaks[3].name;
+        streaks[3] = currentStreaks[3].streak;
+
+        b.putStringArray("cStreakNames", names);
+        b.putIntArray("cStreakValues", streaks);
+
+        //TOTAL GAMES
+        b.putInt("totalGames", ladder.tot_matches);
+
+        //HIGHEST STREAKS
+        // (not yet implemented)
+
+        b.putStringArray("hStreakNames", ladder.highStreaksNames());
+        b.putIntArray("hStreakValues", ladder.highStreakValues());
+
+        //MOST GAMES PLAYED
+
+        Player[] mostGamesPlayed = ladder.sortByNumGames();
+
+        String[] names2 = new String[3];
+        int[] streaks2 = new int[3];
+
+        names2[0] = mostGamesPlayed[0].name;
+        streaks2[0] = mostGamesPlayed[0].streak;
+        names2[1] = mostGamesPlayed[1].name;
+        streaks2[1] = mostGamesPlayed[1].streak;
+        names2[2] = mostGamesPlayed[2].name;
+        streaks2[2] = mostGamesPlayed[2].streak;
+
+        b.putStringArray("mGamesNames", names2);
+        b.putIntArray("mGamesValues", streaks2);
+
+        intent.putExtra("bundle", b);
+
+        startActivity(intent);
     }
 
     @Override
@@ -193,7 +242,6 @@ public class MainActivity extends Activity implements
 
         startActivityForResult(intent, 1);
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
