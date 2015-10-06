@@ -28,6 +28,16 @@ public class Player {
         this.standing = standing;
     }
 
+    public Player(int jsonIndex, String playerName) {
+        this.jsonIndex = jsonIndex;
+        this.name = playerName;
+        this.streak = 0;
+        this.wins = 0;
+        this.losses = 0;
+        this.change = new int[3];
+        this.standing = jsonIndex;
+    }
+
     public void update_stats(boolean win, int new_standing){
 
         int diff = standing - new_standing;

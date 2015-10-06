@@ -62,6 +62,7 @@ public class MainActivity extends Activity implements
     private DriveContents jsonContents;
     private JSONObject ladderJSON;
     private Metadata meta;
+    private Player playerAdded = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,16 @@ public class MainActivity extends Activity implements
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         super.onCreate(savedInstanceState);
+
+        //Check for intent to add new player
+        Intent intent = getIntent();
+        String name = intent.getStringExtra("name");
+
+        if (name != null){
+            Log.d("", "Creating Added player");
+            Player player = new Player(-1, name);
+            this.playerAdded = player;
+        }
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Drive.API)
@@ -79,14 +90,13 @@ public class MainActivity extends Activity implements
                 .build();
 
 
-
         setContentView(R.layout.activity_main);
 
         FragmentManager fm = getFragmentManager();
 
         ladderFragment = (LadderDataFragment) fm.findFragmentByTag("ladder");
 
-        if(ladderFragment == null){
+        if (ladderFragment == null) {
             //testLadderSetup();
             ladder = new Ladder();
 
@@ -95,8 +105,7 @@ public class MainActivity extends Activity implements
             fm.beginTransaction().add(ladderFragment, "ladder").commit();
 
             ladderFragment.setData(ladder);
-        }
-        else
+        } else
             ladder = ladderFragment.getData();
 
         ladder.check_week();
@@ -104,6 +113,7 @@ public class MainActivity extends Activity implements
         registerForContextMenu(findViewById(R.id.button3));
 
         Log.d("Checks", "onCreate Main Activity");
+
     }
 
     @Override
@@ -125,7 +135,9 @@ public class MainActivity extends Activity implements
             case R.id.action_matches:
                 //Start match history activity
             case R.id.action_settings:
-                //Start match settings activity
+                //Start ladder settings activity
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
             default:
                 return super.onContextItemSelected(item);
         }
@@ -401,6 +413,12 @@ public class MainActivity extends Activity implements
                     ladder.load(ladderJSON);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+
+                if(playerAdded != null){
+                    Log.d("", "Adding player " + playerAdded.name);
+                    ladder.addPlayer(playerAdded);
+                    new UpdateJSONAsyncTask(getApplicationContext()).execute();
                 }
 
                 setupList();

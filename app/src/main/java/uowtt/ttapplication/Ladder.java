@@ -201,7 +201,7 @@ public class Ladder{
 
         for(int i =0; i<playerArray.length(); i++){
             num_players++;
-            addPlayer(i, playerArray.getJSONObject(i));
+            addJSONPlayer(i, playerArray.getJSONObject(i));
         }
 
         //Sort player list into order of player position
@@ -218,7 +218,7 @@ public class Ladder{
         this.tot_matches = matchesArray.length();
     }
 
-    private void addPlayer(int index, JSONObject jsonObject) {
+    private void addJSONPlayer(int index, JSONObject jsonObject) {
 
         int[] change = new int[3];
 
@@ -236,6 +236,17 @@ public class Ladder{
         catch(JSONException e){
 
         }
+    }
+
+    public void addPlayer(Player player){
+
+        if(player.standing == -1){
+
+            player.standing = num_players;
+            player.jsonIndex = num_players;
+        }
+
+        ladderData.add(player);
     }
 
     public String[] highStreaksNames() {
