@@ -261,6 +261,16 @@ public class Ladder{
         JSONArray matchesArray = json.getJSONArray("matches");
 
         this.tot_matches = matchesArray.length();
+
+        JSONArray names = json.getJSONArray("topStreakNames");
+
+        for(int i=0; i<3; i++)
+            topStreaksNames[i] = names.getString(i);
+
+        JSONArray values = json.getJSONArray("topStreakValues");
+
+        for(int i=0; i<3; i++)
+            topStreaksValues[i] = values.getInt(i);
     }
 
     private void addJSONPlayer(int index, JSONObject jsonObject) {
