@@ -226,7 +226,7 @@ public class Ladder{
             ladderData.add(player);
         }
         catch(JSONException e){
-
+            e.printStackTrace();
         }
     }
 

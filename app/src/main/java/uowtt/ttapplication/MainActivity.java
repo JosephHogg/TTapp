@@ -1,7 +1,6 @@
 package uowtt.ttapplication;
 
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -14,15 +13,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
@@ -36,6 +32,7 @@ import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,10 +41,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -59,10 +54,11 @@ public class MainActivity extends Activity implements
     private Ladder ladder;
     private LadderDataFragment ladderFragment;
     private GoogleApiClient mGoogleApiClient;
-    private DriveContents jsonContents;
+    private DriveFile jsonFile;
     private JSONObject ladderJSON;
     private Metadata meta;
     private Player playerAdded = null;
+    private boolean reset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +70,7 @@ public class MainActivity extends Activity implements
         //Check for intent to add new player
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
+        reset = intent.getBooleanExtra("reset", false);
 
         if (name != null){
             Log.d("", "Creating Added player");
@@ -224,19 +221,6 @@ public class MainActivity extends Activity implements
         Log.d("Checks", "onResume Main Activity");
     }
 
-    private void populateStreaks() {
-
-        Player[] streaks = ladder.getStreaksArray();
-
-        //TextView streak1 = (TextView) findViewById(R.id.streak1);
-        //TextView streak2 = (TextView) findViewById(R.id.streak2);
-        //TextView streak3 = (TextView) findViewById(R.id.streak3);
-
-        //streak1.setText(streaks[0].streak+", "+streaks[0].name);
-        //streak2.setText(streaks[1].streak + ", " + streaks[1].name);
-        //streak3.setText(streaks[2].streak + ", " + streaks[2].name);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -320,7 +304,10 @@ public class MainActivity extends Activity implements
         @Override
         protected Boolean doInBackgroundConnected(JSONObject... args) {
 
+            if(meta == null){
+                meta = jsonFile.getMetadata(mGoogleApiClient).await().getMetadata();
 
+            }
             DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
             DriveApi.DriveContentsResult contentsResult = file.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
 
@@ -359,6 +346,28 @@ public class MainActivity extends Activity implements
     @Override
     public void onConnected(Bundle connectionHint) {
 
+        final ResultCallback<DriveFolder.DriveFileResult> createJSONCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
+            @Override
+            public void onResult(DriveFolder.DriveFileResult driveFileResult) {
+
+                jsonFile = driveFileResult.getDriveFile();
+
+                //Create a new empty ladder json file and update the json file on google drive
+                ladderJSON = new JSONObject();
+
+                try {
+                    ladderJSON.put("timestamp", new Date().toString());
+                    ladderJSON.put("players", new JSONArray());
+                    ladderJSON.put("matches", new JSONArray());
+                    Log.d("", ladderJSON.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                new UpdateJSONAsyncTask(getApplicationContext()).execute();
+            }
+        };
+
         final ResultCallback<DriveApi.DriveContentsResult> contentsCallback = new
                 ResultCallback<DriveApi.DriveContentsResult>() {
                     @Override
@@ -369,11 +378,12 @@ public class MainActivity extends Activity implements
                         }
 
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                .setTitle("samp_ladder.json")
+                                .setTitle("current_ladder.json")
                                 .setMimeType("application/json").build();
+
                         // Create a file in the root folder
                         Drive.DriveApi.getRootFolder(getGoogleApiClient())
-                                .createFile(getGoogleApiClient(), changeSet, null);
+                                .createFile(getGoogleApiClient(), changeSet, null).setResultCallback(createJSONCallback);
                     }
                 };
 
@@ -381,9 +391,8 @@ public class MainActivity extends Activity implements
         final ResultCallback<DriveApi.DriveContentsResult> jsonCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
             @Override
             public void onResult(DriveApi.DriveContentsResult contentsResult) {
-                jsonContents = contentsResult.getDriveContents();
 
-                InputStream input = jsonContents.getInputStream();
+                InputStream input = contentsResult.getDriveContents().getInputStream();
 
                 BufferedReader streamReader = null;
                 try {
@@ -440,20 +449,30 @@ public class MainActivity extends Activity implements
                 if (result.getMetadataBuffer().getCount() == 0) {
 
                     Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
-                } else {
+                }
+                else if(reset){
+                    meta = result.getMetadataBuffer().get(0);
+
+                    DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
+                    MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                            .setTitle("archive_"+ Calendar.getInstance().get(Calendar.YEAR)+".json")
+                            .build();
+
+                    file.updateMetadata(mGoogleApiClient, changeSet);
+                }
+                else {
                     meta = result.getMetadataBuffer().get(0);
 
                     DriveFile file = Drive.DriveApi.getFile(mGoogleApiClient, meta.getDriveId());
                     file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(jsonCallback);
-
                 }
             }
         };
 
         Query query = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.TITLE, "samp_ladder.json"))
+                .addFilter(Filters.eq(SearchableField.TITLE, "current_ladder.json"))
                 .build();
-        //Drive.DriveApi.requestSync(mGoogleApiClient);
+        Drive.DriveApi.requestSync(mGoogleApiClient);
         Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(qCallback);
     }
 

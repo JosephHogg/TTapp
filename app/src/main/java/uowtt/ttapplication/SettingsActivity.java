@@ -56,4 +56,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         startActivity(intent);
     }
+
+    public void newLadder(View v){
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("reset", true);
+
+        startActivity(intent);
+    }
 }
