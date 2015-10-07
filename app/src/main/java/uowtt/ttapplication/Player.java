@@ -90,4 +90,8 @@ public class Player {
 
         return json;
     }
+
+    public int totalGames() {
+        return wins+losses;
+    }
 }

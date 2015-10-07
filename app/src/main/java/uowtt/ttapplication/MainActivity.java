@@ -150,14 +150,19 @@ public class MainActivity extends Activity implements
         String[] names = new String[4];
         int[] streaks = new int[4];
 
-        names[0] = currentStreaks[0].name;
-        streaks[0] = currentStreaks[0].streak;
-        names[1] = currentStreaks[1].name;
-        streaks[1] = currentStreaks[1].streak;
-        names[2] = currentStreaks[2].name;
-        streaks[2] = currentStreaks[2].streak;
-        names[3] = currentStreaks[3].name;
-        streaks[3] = currentStreaks[3].streak;
+        try {
+            names[0] = currentStreaks[0].name;
+            streaks[0] = currentStreaks[0].streak;
+            names[1] = currentStreaks[1].name;
+            streaks[1] = currentStreaks[1].streak;
+            names[2] = currentStreaks[2].name;
+            streaks[2] = currentStreaks[2].streak;
+            names[3] = currentStreaks[3].name;
+            streaks[3] = currentStreaks[3].streak;
+        }
+        catch(ArrayIndexOutOfBoundsException e){
+            e.printStackTrace();
+        }
 
         b.putStringArray("cStreakNames", names);
         b.putIntArray("cStreakValues", streaks);
@@ -178,12 +183,17 @@ public class MainActivity extends Activity implements
         String[] names2 = new String[3];
         int[] streaks2 = new int[3];
 
-        names2[0] = mostGamesPlayed[0].name;
-        streaks2[0] = mostGamesPlayed[0].streak;
-        names2[1] = mostGamesPlayed[1].name;
-        streaks2[1] = mostGamesPlayed[1].streak;
-        names2[2] = mostGamesPlayed[2].name;
-        streaks2[2] = mostGamesPlayed[2].streak;
+        try {
+            names2[0] = mostGamesPlayed[0].name;
+            streaks2[0] = mostGamesPlayed[0].totalGames();
+            names2[1] = mostGamesPlayed[1].name;
+            streaks2[1] = mostGamesPlayed[1].totalGames();
+            names2[2] = mostGamesPlayed[2].name;
+            streaks2[2] = mostGamesPlayed[2].totalGames();
+        }
+        catch(ArrayIndexOutOfBoundsException e){
+            e.printStackTrace();
+        }
 
         b.putStringArray("mGamesNames", names2);
         b.putIntArray("mGamesValues", streaks2);

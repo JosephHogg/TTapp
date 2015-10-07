@@ -269,7 +269,7 @@ public class Ladder{
         Arrays.sort(sorted, new Comparator<Player>() {
             @Override
             public int compare(Player player, Player t1) {
-                if ((player.wins + player.losses) > (t1.wins + t1.losses)) return 1;
+                if ((player.wins + player.losses) < (t1.wins + t1.losses)) return 1;
                 else return -1;
             }
         });
