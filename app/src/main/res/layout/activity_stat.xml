@@ -105,7 +105,9 @@
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="Small Text"
                         android:id="@+id/totalGames"
-                        android:layout_marginBottom="10dp" />
+                        android:layout_marginBottom="60dp"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginTop="5dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -185,10 +187,35 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Medium Text"
+                        android:text="Top Beginners"
                         android:id="@+id/textView23"
                         android:layout_margin="5dp"
                         android:textColor="#000000" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="Small Text"
+                        android:id="@+id/textView13"
+                        android:layout_margin="5dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="Small Text"
+                        android:id="@+id/textView15"
+                        android:layout_margin="5dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="Small Text"
+                        android:id="@+id/textView14"
+                        android:layout_margin="5dp" />
+
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

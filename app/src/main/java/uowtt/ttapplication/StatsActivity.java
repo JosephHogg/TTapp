@@ -36,7 +36,7 @@ public class StatsActivity extends AppCompatActivity {
 
         //TOTAL GAMES
         TextView total = (TextView) findViewById(R.id.totalGames);
-        //total.setText(b.getInt("totalGames"));
+        total.setText(Integer.toString(b.getInt("totalGames")));
 
         //HIGHEST STREAKS
         String[] hStreakNames = b.getStringArray("hStreakNames");

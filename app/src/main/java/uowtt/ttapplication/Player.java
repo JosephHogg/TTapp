@@ -15,9 +15,10 @@ public class Player {
     int wins;
     int losses;
     int standing;
+    boolean beginner;
     int[] change;
 
-    Player(int jsonIndex, String player_name, int standing, int streak, int wins, int losses, int[] change){
+    public Player(int jsonIndex, String player_name, int standing, int streak, int wins, int losses, boolean beginner, int[] change){
 
         this.jsonIndex = jsonIndex;
         this.name = player_name;
@@ -25,16 +26,18 @@ public class Player {
         this.wins = wins;
         this.losses = losses;
         this.change = change;
+        this.beginner = beginner;
         this.standing = standing;
     }
 
-    public Player(int jsonIndex, String playerName) {
+    public Player(int jsonIndex, String playerName, boolean beginner) {
         this.jsonIndex = jsonIndex;
         this.name = playerName;
         this.streak = 0;
         this.wins = 0;
         this.losses = 0;
         this.change = new int[3];
+        this.beginner = beginner;
         this.standing = jsonIndex;
     }
 
@@ -83,6 +86,7 @@ public class Player {
             json.put("wins", this.wins);
             json.put("losses", this.losses);
             json.put("currentStreak", this.streak);
+            json.put("beginner", this.beginner);
             json.put("change", jChange);
         } catch (JSONException e) {
             e.printStackTrace();

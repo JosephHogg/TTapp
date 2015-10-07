@@ -52,7 +52,6 @@ public class MainActivity extends Activity implements
         GoogleApiClient.OnConnectionFailedListener {
 
     private Ladder ladder;
-    private LadderDataFragment ladderFragment;
     private GoogleApiClient mGoogleApiClient;
     private DriveFile jsonFile;
     private JSONObject ladderJSON;
@@ -70,11 +69,12 @@ public class MainActivity extends Activity implements
         //Check for intent to add new player
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
+        boolean beginner = intent.getBooleanExtra("isBeginner", false);
         reset = intent.getBooleanExtra("reset", false);
 
         if (name != null){
             Log.d("", "Creating Added player");
-            Player player = new Player(-1, name);
+            Player player = new Player(-1, name, beginner);
             this.playerAdded = player;
         }
 
@@ -89,12 +89,11 @@ public class MainActivity extends Activity implements
 
         setContentView(R.layout.activity_main);
 
-        ladder.check_week();
-
         registerForContextMenu(findViewById(R.id.button3));
 
         Log.d("Checks", "onCreate Main Activity");
 
+        this.ladder = new Ladder();
     }
 
     @Override
@@ -155,8 +154,6 @@ public class MainActivity extends Activity implements
         b.putInt("totalGames", ladder.tot_matches);
 
         //HIGHEST STREAKS
-        // (not yet implemented)
-
         b.putStringArray("hStreakNames", ladder.highStreaksNames());
         b.putIntArray("hStreakValues", ladder.highStreakValues());
 

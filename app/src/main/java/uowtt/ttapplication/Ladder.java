@@ -24,6 +24,9 @@ public class Ladder{
     public int week_matches;
     public int last_week_reset_day;
 
+    public String[] topStreaksNames = new String[3];
+    public int[] topStreaksValues = new int[3];
+
 
     Ladder(){
 
@@ -158,6 +161,8 @@ public class Ladder{
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            updateTopStreaks(ladderJSON, oppo.name, oppo.streak);
         }
         else {
 
@@ -173,6 +178,8 @@ public class Ladder{
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            updateTopStreaks(ladderJSON, chal.name, chal.streak);
         }
 
         try {
@@ -180,6 +187,52 @@ public class Ladder{
             matches.put(match.toJSONObject());
             ladderJSON.put("matches", matches);
             ladderJSON.put("players", players);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTopStreaks(JSONObject ladderJSON, String name, int streak) {
+
+        if(streak > topStreaksValues[2]){
+
+            if(streak > topStreaksValues[1]){
+
+                if(streak > topStreaksValues[0]){
+
+                    topStreaksNames[2] = topStreaksNames[1];
+                    topStreaksValues[2] = topStreaksValues[1];
+                    topStreaksNames[1] = topStreaksNames[0];
+                    topStreaksValues[1] = topStreaksValues[0];
+                    topStreaksNames[0] = name;
+                    topStreaksValues[0] = streak;
+                }
+                else{
+
+                    topStreaksNames[2] = topStreaksNames[1];
+                    topStreaksValues[2] = topStreaksValues[1];
+                    topStreaksNames[1] = name;
+                    topStreaksValues[1] = streak;
+                }
+            }
+            else{
+
+                topStreaksValues[2] = streak;
+                topStreaksNames[2] = name;
+            }
+        }
+
+        try {
+            JSONArray topNamesJSON = new JSONArray();
+            for(int i=0; i<3; i++)
+                topNamesJSON.put(i, topStreaksNames[i]);
+
+            JSONArray topValuesJSON = new JSONArray();
+            for(int i=0; i<3; i++)
+                topValuesJSON.put(i, topStreaksValues[i]);
+
+            ladderJSON.put("topStreakNames", topNamesJSON);
+            ladderJSON.put("topStreakValues", topValuesJSON);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -222,7 +275,7 @@ public class Ladder{
 
             Player player = new Player(index, jsonObject.getString("name"), jsonObject.getInt("standing"),
                     jsonObject.getInt("currentStreak"), jsonObject.getInt("wins"),
-                    jsonObject.getInt("losses"), change);
+                    jsonObject.getInt("losses"), jsonObject.getBoolean("beginner"), change);
             ladderData.add(player);
         }
         catch(JSONException e){
@@ -254,12 +307,12 @@ public class Ladder{
 
     public String[] highStreaksNames() {
         //to be implemented
-        return new String[3];
+        return topStreaksNames;
     }
 
     public int[] highStreakValues() {
         //to be implemented
-        return new int[3];
+        return topStreaksValues;
     }
 
     public Player[] sortByNumGames() {
