@@ -53,14 +53,6 @@ public class Ladder{
         last_week_reset_day = c.get(Calendar.DATE);
     }
 
-    public Player[] getLadderData(){
-
-
-        Player[] data = ladderData.toArray(new Player[1]);
-
-        return data;
-    }
-
     public List<Player> getLadderList(){
 
         return ladderData;
@@ -238,7 +230,7 @@ public class Ladder{
         }
     }
 
-    public void addPlayer(Player player){
+    public void addPlayer(JSONObject ladderJSON, Player player){
 
         if(player.standing == -1){
 
@@ -246,7 +238,18 @@ public class Ladder{
             player.jsonIndex = num_players;
         }
 
+        JSONArray players = null;
+
+        try{
+            players = ladderJSON.getJSONArray("players");
+            players.put(player.toJSONObject());
+            ladderJSON.put("players", players);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         ladderData.add(player);
+        num_players++;
     }
 
     public String[] highStreaksNames() {

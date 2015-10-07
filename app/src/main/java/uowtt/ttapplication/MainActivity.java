@@ -417,7 +417,7 @@ public class MainActivity extends Activity implements
 
                 if(playerAdded != null){
                     Log.d("", "Adding player " + playerAdded.name);
-                    ladder.addPlayer(playerAdded);
+                    ladder.addPlayer(ladderJSON, playerAdded);
                     new UpdateJSONAsyncTask(getApplicationContext()).execute();
                 }
 
@@ -469,18 +469,6 @@ public class MainActivity extends Activity implements
         ladView.setAdapter(lad_adapter);
 
     }
-
-    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
-            ResultCallback<DriveFolder.DriveFileResult>() {
-                @Override
-                public void onResult(DriveFolder.DriveFileResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        showMessage("Error while trying to create the file");
-                        return;
-                    }
-                    showMessage("Created a file with content: " + result.getDriveFile().getDriveId());
-                }
-            };
 
     /**
      * Shows a toast message.
