@@ -89,22 +89,6 @@ public class MainActivity extends Activity implements
 
         setContentView(R.layout.activity_main);
 
-        FragmentManager fm = getFragmentManager();
-
-        ladderFragment = (LadderDataFragment) fm.findFragmentByTag("ladder");
-
-        if (ladderFragment == null) {
-            //testLadderSetup();
-            ladder = new Ladder();
-
-            ladderFragment = new LadderDataFragment();
-
-            fm.beginTransaction().add(ladderFragment, "ladder").commit();
-
-            ladderFragment.setData(ladder);
-        } else
-            ladder = ladderFragment.getData();
-
         ladder.check_week();
 
         registerForContextMenu(findViewById(R.id.button3));
@@ -234,8 +218,6 @@ public class MainActivity extends Activity implements
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // store the data in the fragment
-        ladderFragment.setData(ladder);
     }
 
     public void newGame(View view) {
@@ -516,27 +498,5 @@ public class MainActivity extends Activity implements
     @Override
     public void onConnectionSuspended(int i) {
 
-    }
-}
-
-class LadderDataFragment extends Fragment{
-
-    // data object we want to retain
-    private Ladder ladder;
-
-    // this method is only called once for this fragment
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // retain this fragment
-        setRetainInstance(true);
-    }
-
-    public void setData(Ladder ladder) {
-        this.ladder = ladder;
-    }
-
-    public Ladder getData() {
-        return ladder;
     }
 }
