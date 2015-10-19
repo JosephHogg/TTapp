@@ -29,11 +29,19 @@
         <activity
             android:name=".StatsActivity"
             android:label="@string/title_activity_stats"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity" >
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="uowtt.ttapplication.MainActivity" />
+        </activity>
+        <activity
+            android:name=".MatchesActivity"
+            android:label="@string/title_activity_matches"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

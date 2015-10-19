@@ -111,13 +111,28 @@ public class MainActivity extends Activity implements
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+
+        Intent intent;
+
+        Log.d("sett", (String) item.getTitle());
+
         switch (item.getItemId()) {
+
             case R.id.action_matches:
                 //Start match history activity
+                intent = new Intent(this, MatchesActivity.class);
+                try {
+                    intent.putExtra("matchJSON", ladderJSON.getJSONArray("matches").toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                startActivity(intent);
+                return true;
             case R.id.action_settings:
                 //Start ladder settings activity
-                Intent intent = new Intent(this, SettingsActivity.class);
+                intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
+                return true;
             default:
                 return super.onContextItemSelected(item);
         }
@@ -257,7 +272,7 @@ public class MainActivity extends Activity implements
 
             if(score.equals("2-0") || score.equals("2-1")){
                 try {
-                    match = new Match(chal, oppo, true, score);
+                    match = new Match(chal, oppo, true, score, null);
                 }
                 catch(Exception ignore){
                 }
@@ -265,7 +280,7 @@ public class MainActivity extends Activity implements
             else if(score.equals("0-2") || score.equals("1-2")){
 
                 try {
-                    match = new Match(chal, oppo, false, score);
+                    match = new Match(chal, oppo, false, score, null);
                 }
                 catch(Exception ignore){
                 }
@@ -281,7 +296,6 @@ public class MainActivity extends Activity implements
         }
         if(requestCode == 2 & resultCode == RESULT_OK)
             mGoogleApiClient.connect();
-
     }
 
     public class UpdateJSONAsyncTask extends ApiClientAsyncTask<JSONObject, Void, Boolean> {
