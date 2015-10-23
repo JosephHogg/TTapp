@@ -167,14 +167,22 @@ public class Ladder{
         else {
 
             chal.update_stats(winner, oppo_pos);
-            oppo.update_stats(!winner, chal_pos);
+            oppo.update_stats(!winner, oppo_pos + 1);
 
-            ladderData.set(chal_pos, oppo);
-            ladderData.set(oppo_pos, chal);
+            ladderData.remove(chal_pos);
+            ladderData.add(oppo_pos, chal);
 
             try {
-                players.put(chal.jsonIndex, chal.toJSONObject());
-                players.put(oppo.jsonIndex, oppo.toJSONObject());
+                for(int i = 0; i<players.length(); i++){
+
+                    Player tmp = ladderData.get(i);
+
+                    if(tmp.standing > oppo_pos){
+                        tmp.standing++;
+                    }
+
+                    players.put(tmp.jsonIndex, tmp.toJSONObject());
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

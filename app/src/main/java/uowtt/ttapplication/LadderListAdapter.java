@@ -56,10 +56,8 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
         TextView name_view = (TextView) newView.findViewById(R.id.playername);
         TextView pos_view = (TextView) newView.findViewById(R.id.ladderposition);
         TextView change_view = (TextView) newView.findViewById(R.id.change);
-        //if((position+1)%5 == 0)
-            pos_view.setText(new Integer(position+1).toString());
-        //else
-        //    pos_view.setText(" ");
+
+        pos_view.setText(new Integer(position+1).toString());
         name_view.setText(player.name);
 
         if(change > 0) {
