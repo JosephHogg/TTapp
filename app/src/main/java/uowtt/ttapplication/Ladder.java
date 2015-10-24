@@ -101,7 +101,6 @@ public class Ladder{
                     player = check_player;
                 }
                 else throw new Exception("Duplicate player name found");
-
             }
         }
 
@@ -200,6 +199,47 @@ public class Ladder{
             Log.d("match json", match.toJSONObject().toString());
             matches.put(match.toJSONObject());
             ladderJSON.put("matches", matches);
+            ladderJSON.put("players", players);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetPlayer(JSONObject ladderJSON, Player player){
+
+        JSONArray players = null;
+
+        int pos = ladderData.indexOf(player);
+
+        try {
+            players = ladderJSON.getJSONArray("players");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ladderData.remove(pos);
+        ladderData.add(player);
+
+        try {
+            for(int i = 0; i<players.length(); i++){
+
+                Player tmp = ladderData.get(i);
+
+                if(tmp.standing > pos){
+                    tmp.standing--;
+                }
+
+                players.put(tmp.jsonIndex, tmp.toJSONObject());
+            }
+
+            player.update_stats(-1, ladderData.size());
+            players.put(player.jsonIndex, player.toJSONObject());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
             ladderJSON.put("players", players);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -352,5 +392,43 @@ public class Ladder{
         });
 
         return sorted;
+    }
+
+    public void deletePlayer(JSONObject ladderJSON, Player player) {
+
+        num_players--;
+
+        JSONArray players = null;
+
+        int pos = ladderData.indexOf(player);
+
+        try {
+            players = ladderJSON.getJSONArray("players");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ladderData.remove(pos);
+
+        JSONArray newPlayers = new JSONArray();
+
+        for(int i = 0; i<ladderData.size(); i++){
+
+            Player tmp = ladderData.get(i);
+
+            if(tmp.standing > pos){
+                tmp.standing--;
+            }
+            if(tmp.jsonIndex > player.jsonIndex){
+                tmp.jsonIndex--;
+            }
+
+            newPlayers.put(tmp.toJSONObject());
+        }
+        try {
+            ladderJSON.put("players", newPlayers);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

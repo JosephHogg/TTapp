@@ -11,11 +11,15 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -93,6 +97,7 @@ public class MainActivity extends Activity implements
         setContentView(R.layout.activity_main);
 
         registerForContextMenu(findViewById(R.id.button3));
+        registerForContextMenu(findViewById(R.id.ladderList));
 
         Log.d("Checks", "onCreate Main Activity");
 
@@ -105,7 +110,10 @@ public class MainActivity extends Activity implements
 
         MenuInflater inflater = getMenuInflater();
 
-        inflater.inflate(R.menu.menu_main, menu);
+        if(v.getId() == R.id.button3)
+            inflater.inflate(R.menu.menu_main, menu);
+        else
+            inflater.inflate(R.menu.menu_player, menu);
     }
 
     public void contextMenu(View view){
@@ -118,6 +126,10 @@ public class MainActivity extends Activity implements
         Intent intent;
 
         Log.d("sett", (String) item.getTitle());
+
+        AdapterView.AdapterContextMenuInfo info;
+        Player player = null;
+        String name;
 
         switch (item.getItemId()) {
 
@@ -136,9 +148,140 @@ public class MainActivity extends Activity implements
                 intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
+            case R.id.action_pstats:
+
+                info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+
+                try {
+                    player = ladder.getPlayer(name);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if(player != null){
+
+                    displayStats(player);
+                }
+
+                return true;
+            case R.id.action_reset:
+                info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+
+                try {
+                    player = ladder.getPlayer(name);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if(player != null){
+
+                    resetPlayer(player);
+                }
+            case R.id.action_delete:
+                info=(AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+
+                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+
+                try {
+                    player = ladder.getPlayer(name);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if(player != null){
+
+                    deletePlayer(player);
+                }
             default:
                 return super.onContextItemSelected(item);
         }
+    }
+
+    private void deletePlayer(final Player player) {
+
+        final EditText edit = new EditText(MainActivity.this);
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Are you sure?")
+                .setMessage("Are you sure you want to reset this player on the ladder?")
+                .setView(edit)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue with reset
+
+                        Log.d("pass", edit.getText().toString());
+
+                        if (edit.getText().toString().equals("password")) {
+
+                            //RESET PLAYER POSITION
+                            ladder.deletePlayer(ladderJSON, player);
+                            new UpdateJSONAsyncTask(MainActivity.this.getApplicationContext()).execute();
+                            setupList();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Incorrect Password", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int width) {
+                        //do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.stat_sys_warning)
+                .show();
+    }
+
+    private void resetPlayer(final Player player){
+
+        final EditText edit = new EditText(MainActivity.this);
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Are you sure?")
+                .setMessage("Are you sure you want to reset this player on the ladder?")
+                .setView(edit)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue with reset
+
+                        Log.d("pass", edit.getText().toString());
+
+                        if (edit.getText().toString().equals("password")) {
+
+                            //RESET PLAYER POSITION
+                            ladder.resetPlayer(ladderJSON, player);
+                            new UpdateJSONAsyncTask(MainActivity.this.getApplicationContext()).execute();
+                            setupList();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Incorrect Password", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int width) {
+                        //do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.stat_sys_warning)
+                .show();
+    }
+
+    private void displayStats(Player player) {
+
+        LayoutInflater inflater = getLayoutInflater();
+
+        View statsView = inflater.inflate(R.layout.dialog_stats, null);
+
+        ((TextView) statsView.findViewById(R.id.streak)).setText(String.valueOf(player.streak));
+        ((TextView) statsView.findViewById(R.id.wins)).setText(String.valueOf(player.wins));
+        ((TextView) statsView.findViewById(R.id.losses)).setText(String.valueOf(player.losses));
+
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle(player.name)
+                .setView(statsView)
+                .show();
     }
 
     public void startStatsActivity(View v){
@@ -345,7 +488,6 @@ public class MainActivity extends Activity implements
                 showMessage("Error while editing contents");
                 return;
             }
-            showMessage("Successfully edited contents");
         }
     }
 
