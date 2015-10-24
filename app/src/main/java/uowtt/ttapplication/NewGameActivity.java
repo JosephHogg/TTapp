@@ -1,7 +1,11 @@
 package uowtt.ttapplication;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
@@ -9,8 +13,12 @@ import android.os.Bundle;
 import android.support.v7.internal.widget.AdapterViewCompat;
 import android.text.Editable;
 import android.text.Html;
+import android.text.Layout;
+import android.text.Spannable;
+import android.text.Spanned;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -153,15 +161,69 @@ public class NewGameActivity extends Activity {
         String score = spinner.getSelectedItem().toString();
 
         if(validate_match(chal_name, oppo_name, score, true)) {
-            Intent intent = new Intent();
 
-            intent.putExtra("chal", chal_name);
-            intent.putExtra("oppo", oppo_name);
-            intent.putExtra("score", score);
+            Spanned matchText = Html.fromHtml(Match.matchToString(score, chal_name, oppo_name));
 
-            setResult(1, intent);
+            DialogFragment dialog = new confirmMatchDialog(matchText, score, chal_name, oppo_name);
 
-            finish();
+            dialog.show(getFragmentManager(), "tag...?");
+        }
+
+    }
+
+    public class confirmMatchDialog extends DialogFragment{
+
+        Spanned matchText;
+        String score;
+        String chal_name;
+        String oppo_name;
+
+        public confirmMatchDialog(Spanned matchText, String score, String chal_name, String oppo_name){
+
+            this.matchText = matchText;
+            this.score = score;
+            this.chal_name = chal_name;
+            this.oppo_name = oppo_name;
+        }
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState){
+
+            // Build the dialog and set up the button click handlers
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+            // Get the layout inflater
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+
+            View customView = inflater.inflate(R.layout.dialog_match, null);
+
+            ((TextView) customView.findViewById(R.id.matchText)).setText(matchText);
+
+            // Inflate and set the layout for the dialog
+            // Pass null as the parent view because its going in the dialog layout
+            builder.setView(customView);
+
+            builder.setMessage("Confirm?")
+                    .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Intent intent = new Intent();
+
+                            intent.putExtra("chal", chal_name);
+                            intent.putExtra("oppo", oppo_name);
+                            intent.putExtra("score", score);
+
+                            setResult(1, intent);
+
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            return;
+                        }
+                    });
+            return builder.create();
         }
 
     }

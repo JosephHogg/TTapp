@@ -95,4 +95,29 @@ public class Match{
 
         return outcome;
     }
+
+    public static String matchToString(String score, String chal, String oppo) {
+
+        String outcome;
+
+        if (score.equals("2-0") || score.equals("2-1")) {
+
+            outcome = "<font color=#03E103>" + chal + "</font>" + "<font color=black>" +
+                    " beats " + "</font>" + "<font color=red>" + oppo + " " + "</font>" + "<font color=black>" + score + "</font>";
+        } else {
+
+            //Reverse score so that it makes sense
+
+            String tmpScore = "";
+
+            tmpScore += score.charAt(2);
+            tmpScore += score.charAt(1);
+            tmpScore += score.charAt(0);
+
+            outcome = "<font color=#03E103>" + oppo + "</font>" + "<font color=black>" +
+                    " beats " + "</font>" + "<font color=red>" + chal + "</font>" + " " + "<font color=black>" + tmpScore + "</font>";
+        }
+
+        return outcome;
+    }
 }
