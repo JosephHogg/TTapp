@@ -41,7 +41,7 @@ public class Player {
         this.standing = jsonIndex;
     }
 
-    public void update_stats(boolean win, int new_standing){
+    public void update_stats(int win, int new_standing){
 
         int diff = standing - new_standing;
 
@@ -49,11 +49,11 @@ public class Player {
 
         standing = new_standing;
 
-        if(win){
+        if(win==1){
             streak++;
             wins++;
         }
-        else{
+        else if(win == 0){
             streak = 0;
             losses++;
         }

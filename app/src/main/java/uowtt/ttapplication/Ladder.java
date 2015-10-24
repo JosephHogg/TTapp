@@ -152,8 +152,8 @@ public class Ladder{
 
         if(winner == false){
 
-            chal.update_stats(winner, chal_pos);
-            oppo.update_stats(!winner, oppo_pos);
+            chal.update_stats(0, chal_pos);
+            oppo.update_stats(1, oppo_pos);
 
             try {
                 players.put(chal.jsonIndex, chal.toJSONObject());
@@ -166,8 +166,7 @@ public class Ladder{
         }
         else {
 
-            chal.update_stats(winner, oppo_pos);
-            oppo.update_stats(!winner, oppo_pos + 1);
+            chal.update_stats(1, oppo_pos);
 
             ladderData.remove(chal_pos);
             ladderData.add(oppo_pos, chal);
@@ -177,15 +176,22 @@ public class Ladder{
 
                     Player tmp = ladderData.get(i);
 
-                    if(tmp.standing > oppo_pos){
-                        tmp.standing++;
+                    if(tmp.standing > oppo_pos && tmp.standing < chal_pos){
+                        tmp.update_stats(-1, tmp.standing + 1);
                     }
 
                     players.put(tmp.jsonIndex, tmp.toJSONObject());
                 }
+
+                oppo.update_stats(0, oppo_pos + 1);
+                players.put(oppo.jsonIndex, oppo.toJSONObject());
+                players.put(chal.jsonIndex, chal.toJSONObject());
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+
 
             updateTopStreaks(ladderJSON, chal.name, chal.streak);
         }
