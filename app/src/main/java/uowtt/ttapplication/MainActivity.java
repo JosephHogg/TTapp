@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements
         reset = intent.getBooleanExtra("reset", false);
 
         if (name != null){
-            Log.d("", "Creating Added player");
+            Log.d("", "Creating Added player   "+beginner);
             Player player = new Player(-1, name, beginner);
             this.playerAdded = player;
         }

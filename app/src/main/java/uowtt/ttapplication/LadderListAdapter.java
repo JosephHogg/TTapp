@@ -2,6 +2,7 @@ package uowtt.ttapplication;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +59,13 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
         TextView change_view = (TextView) newView.findViewById(R.id.change);
 
         pos_view.setText(new Integer(position+1).toString());
-        name_view.setText(player.name);
+        if(player.beginner) {
+            name_view.setText(Html.fromHtml("<font color=blue>"+player.name+"</font>"));
+        }
+        else{
+            name_view.setText(player.name);
+        }
+
 
         if(change > 0) {
             change_view.setCompoundDrawables(grup, null, null, null);
