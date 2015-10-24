@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class Ladder{
 
-    private List<Player> ladderData;
+    public List<Player> ladderData;
     public int tot_matches;
     public int num_players;
     public int week_matches;

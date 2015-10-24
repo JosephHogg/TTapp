@@ -50,8 +50,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, MainActivity.class);
 
-        //CHECK NAME UNIQUE HERE
-
         intent.putExtra("name", playerName);
         intent.putExtra("isBeginner", beginner);
 

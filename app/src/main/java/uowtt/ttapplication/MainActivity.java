@@ -1,9 +1,11 @@
 package uowtt.ttapplication;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -430,7 +432,33 @@ public class MainActivity extends Activity implements
 
                 if(playerAdded != null){
                     Log.d("", "Adding player " + playerAdded.name);
-                    ladder.addPlayer(ladderJSON, playerAdded);
+
+                    boolean unique = true;
+
+                    for(int i=0; i <ladder.num_players; i++){
+
+                        if(ladder.ladderData.get(i).name.equals(playerAdded.name)){
+                            unique = false;
+                        }
+                    }
+
+                    if(unique) {
+                        ladder.addPlayer(ladderJSON, playerAdded);
+                    }
+                    else{
+
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Error")
+                                .setMessage("That name is already in use.")
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue with delete
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_delete)
+                                .show();
+                    }
+
                     new UpdateJSONAsyncTask(getApplicationContext()).execute();
                 }
 
