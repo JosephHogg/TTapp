@@ -55,6 +55,8 @@ public class SettingsActivity extends AppCompatActivity {
         intent.putExtra("name", playerName);
         intent.putExtra("isBeginner", beginner);
 
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
         startActivity(intent);
     }
 

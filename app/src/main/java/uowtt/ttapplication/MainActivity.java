@@ -69,6 +69,7 @@ public class MainActivity extends Activity implements
         //Check for intent to add new player
         Intent intent = getIntent();
         String name = intent.getStringExtra("name");
+        intent.removeExtra("name");
         boolean beginner = intent.getBooleanExtra("isBeginner", false);
         reset = intent.getBooleanExtra("reset", false);
 

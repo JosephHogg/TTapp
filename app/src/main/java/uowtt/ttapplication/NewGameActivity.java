@@ -213,6 +213,8 @@ public class NewGameActivity extends Activity {
                             intent.putExtra("oppo", oppo_name);
                             intent.putExtra("score", score);
 
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
                             setResult(1, intent);
 
                             finish();
