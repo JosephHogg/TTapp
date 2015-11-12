@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,6 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
     public void newLadder(View v){
 
         final EditText edit = new EditText(SettingsActivity.this);
+        edit.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
         new AlertDialog.Builder(SettingsActivity.this)
                 .setTitle("Are you sure?")

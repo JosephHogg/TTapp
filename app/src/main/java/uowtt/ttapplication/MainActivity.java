@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -202,6 +203,7 @@ public class MainActivity extends Activity implements
     private void deletePlayer(final Player player) {
 
         final EditText edit = new EditText(MainActivity.this);
+        edit.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
@@ -236,6 +238,7 @@ public class MainActivity extends Activity implements
     private void resetPlayer(final Player player){
 
         final EditText edit = new EditText(MainActivity.this);
+        edit.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
