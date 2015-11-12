@@ -180,6 +180,8 @@ public class MainActivity extends Activity implements
 
                     resetPlayer(player);
                 }
+
+                return true;
             case R.id.action_delete:
                 info=(AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 
@@ -195,6 +197,8 @@ public class MainActivity extends Activity implements
 
                     deletePlayer(player);
                 }
+
+                return true;
             default:
                 return super.onContextItemSelected(item);
         }
