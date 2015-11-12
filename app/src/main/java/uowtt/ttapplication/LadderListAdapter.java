@@ -33,9 +33,9 @@ public class LadderListAdapter extends ArrayAdapter<Player> {
         this.nochange = context.getResources().getDrawable(R.drawable.nochange);
         this.streak = context.getResources().getDrawable(R.drawable.streak);
 
-        this.grup.setBounds(0,0,50,50);
-        this.redown.setBounds(0, 0, 50, 50);
-        this.nochange.setBounds(0, 0, 50, 50);
+        this.grup.setBounds(0,0,25,25);
+        this.redown.setBounds(0, 0, 25, 25);
+        this.nochange.setBounds(0, 0, 25, 25);
     }
 
     @Override

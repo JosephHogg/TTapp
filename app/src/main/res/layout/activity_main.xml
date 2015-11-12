@@ -18,7 +18,8 @@
             android:text="Ladder Standings"
             android:id="@+id/textView10"
             android:layout_gravity="center_vertical"
-            android:layout_margin="5dp" />
+            android:layout_margin="5dp"
+            android:textSize="28dp" />
 
         <Button
             style="?android:attr/buttonStyleSmall"

@@ -5,9 +5,9 @@
     android:layout_width="fill_parent">
 
     <TextView
-        android:layout_width="20dp"
+        android:layout_width="35dp"
         android:layout_height="50dp"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="0"
         android:gravity="center"
         android:id="@+id/ladderposition" />
@@ -21,17 +21,18 @@
         android:id="@+id/textView" />
 
     <TextView
-        android:layout_width="40dp"
+        android:layout_width="50dp"
         android:layout_height="50dp"
         android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Medium Text"
-        android:id="@+id/change" />
+        android:id="@+id/change"
+        android:layout_marginRight="20dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Medium Text"
         android:drawablePadding="10dp"
         android:id="@+id/playername"

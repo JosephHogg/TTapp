@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -65,6 +67,8 @@ public class MainActivity extends Activity implements
     private Metadata meta;
     private Player playerAdded = null;
     private boolean reset;
+    private boolean loading = true;
+    ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +107,12 @@ public class MainActivity extends Activity implements
         Log.d("Checks", "onCreate Main Activity");
 
         this.ladder = new Ladder();
+
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.show();
+
     }
 
     @Override
@@ -132,82 +142,89 @@ public class MainActivity extends Activity implements
         Player player = null;
         String name;
 
-        switch (item.getItemId()) {
+        if(!loading){
+            switch (item.getItemId()) {
 
-            case R.id.action_matches:
-                //Start match history activity
-                intent = new Intent(this, MatchesActivity.class);
-                try {
-                    intent.putExtra("matchJSON", ladderJSON.getJSONArray("matches").toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                startActivity(intent);
-                return true;
-            case R.id.action_settings:
-                //Start ladder settings activity
-                intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.action_pstats:
+                case R.id.action_matches:
+                    //Start match history activity
+                    intent = new Intent(this, MatchesActivity.class);
+                    try {
+                        intent.putExtra("matchJSON", ladderJSON.getJSONArray("matches").toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    startActivity(intent);
+                    return true;
+                case R.id.action_settings:
+                    //Start ladder settings activity
+                    intent = new Intent(this, SettingsActivity.class);
+                    startActivity(intent);
+                    return true;
+                case R.id.action_pstats:
 
-                info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+                    info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+                    name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
 
-                try {
-                    player = ladder.getPlayer(name);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    try {
+                        player = ladder.getPlayer(name);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-                if(player != null){
+                    if (player != null) {
 
-                    displayStats(player);
-                }
+                        displayStats(player);
+                    }
 
-                return true;
-            case R.id.action_reset:
-                info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+                    return true;
+                case R.id.action_reset:
+                    info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+                    name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
 
-                try {
-                    player = ladder.getPlayer(name);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    try {
+                        player = ladder.getPlayer(name);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-                if(player != null){
+                    if (player != null) {
 
-                    resetPlayer(player);
-                }
+                        resetPlayer(player);
+                    }
 
-                return true;
-            case R.id.action_delete:
-                info=(AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+                    return true;
+                case R.id.action_delete:
+                    info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-                name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
+                    name = ((TextView) info.targetView.findViewById(R.id.playername)).getText().toString();
 
-                try {
-                    player = ladder.getPlayer(name);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    try {
+                        player = ladder.getPlayer(name);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-                if(player != null){
+                    if (player != null) {
 
-                    deletePlayer(player);
-                }
+                        deletePlayer(player);
+                    }
 
-                return true;
-            default:
-                return super.onContextItemSelected(item);
+                    return true;
+                default:
+                    return super.onContextItemSelected(item);
+            }
         }
+
+        return super.onContextItemSelected(item);
     }
 
     private void deletePlayer(final Player player) {
 
         final EditText edit = new EditText(MainActivity.this);
         edit.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        edit.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        edit.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
@@ -243,6 +260,8 @@ public class MainActivity extends Activity implements
 
         final EditText edit = new EditText(MainActivity.this);
         edit.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        edit.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        edit.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
@@ -292,64 +311,67 @@ public class MainActivity extends Activity implements
     }
 
     public void startStatsActivity(View v){
-        //Start the stats activity
-        Intent intent = new Intent(this, StatsActivity.class);
-        Bundle b = new Bundle();
+        if(!loading) {
+            //Start the stats activity
+            Intent intent = new Intent(this, StatsActivity.class);
+            Bundle b = new Bundle();
 
-        //GET CURRENT STREAKS
-        Player[] currentStreaks = ladder.getStreaksArray();
-        String[] names = new String[4];
-        int[] streaks = new int[4];
+            //GET CURRENT STREAKS
+            Player[] currentStreaks = ladder.getStreaksArray();
+            String[] names = new String[4];
+            int[] streaks = new int[4];
 
-        try {
-            names[0] = currentStreaks[0].name;
-            streaks[0] = currentStreaks[0].streak;
-            names[1] = currentStreaks[1].name;
-            streaks[1] = currentStreaks[1].streak;
-            names[2] = currentStreaks[2].name;
-            streaks[2] = currentStreaks[2].streak;
-            names[3] = currentStreaks[3].name;
-            streaks[3] = currentStreaks[3].streak;
+            try {
+                names[0] = currentStreaks[0].name;
+                streaks[0] = currentStreaks[0].streak;
+                names[1] = currentStreaks[1].name;
+                streaks[1] = currentStreaks[1].streak;
+                names[2] = currentStreaks[2].name;
+                streaks[2] = currentStreaks[2].streak;
+                names[3] = currentStreaks[3].name;
+                streaks[3] = currentStreaks[3].streak;
+            }
+            catch(ArrayIndexOutOfBoundsException e){
+                e.printStackTrace();
+            }
+
+            b.putStringArray("cStreakNames", names);
+            b.putIntArray("cStreakValues", streaks);
+
+            //TOTAL GAMES
+            b.putInt("totalGames", ladder.tot_matches);
+
+            //HIGHEST STREAKS
+            b.putStringArray("hStreakNames", ladder.highStreaksNames());
+            b.putIntArray("hStreakValues", ladder.highStreakValues());
+
+            //MOST GAMES PLAYED
+
+            Player[] mostGamesPlayed = ladder.sortByNumGames();
+
+            String[] names2 = new String[3];
+            int[] streaks2 = new int[3];
+
+            try {
+                names2[0] = mostGamesPlayed[0].name;
+                streaks2[0] = mostGamesPlayed[0].totalGames();
+                names2[1] = mostGamesPlayed[1].name;
+                streaks2[1] = mostGamesPlayed[1].totalGames();
+                names2[2] = mostGamesPlayed[2].name;
+                streaks2[2] = mostGamesPlayed[2].totalGames();
+            }
+            catch(ArrayIndexOutOfBoundsException e){
+                e.printStackTrace();
+            }
+
+            b.putStringArray("mGamesNames", names2);
+            b.putIntArray("mGamesValues", streaks2);
+
+            intent.putExtra("bundle", b);
+
+
+            startActivity(intent);
         }
-        catch(ArrayIndexOutOfBoundsException e){
-            e.printStackTrace();
-        }
-
-        b.putStringArray("cStreakNames", names);
-        b.putIntArray("cStreakValues", streaks);
-
-        //TOTAL GAMES
-        b.putInt("totalGames", ladder.tot_matches);
-
-        //HIGHEST STREAKS
-        b.putStringArray("hStreakNames", ladder.highStreaksNames());
-        b.putIntArray("hStreakValues", ladder.highStreakValues());
-
-        //MOST GAMES PLAYED
-
-        Player[] mostGamesPlayed = ladder.sortByNumGames();
-
-        String[] names2 = new String[3];
-        int[] streaks2 = new int[3];
-
-        try {
-            names2[0] = mostGamesPlayed[0].name;
-            streaks2[0] = mostGamesPlayed[0].totalGames();
-            names2[1] = mostGamesPlayed[1].name;
-            streaks2[1] = mostGamesPlayed[1].totalGames();
-            names2[2] = mostGamesPlayed[2].name;
-            streaks2[2] = mostGamesPlayed[2].totalGames();
-        }
-        catch(ArrayIndexOutOfBoundsException e){
-            e.printStackTrace();
-        }
-
-        b.putStringArray("mGamesNames", names2);
-        b.putIntArray("mGamesValues", streaks2);
-
-        intent.putExtra("bundle", b);
-
-        startActivity(intent);
     }
 
     @Override
@@ -393,7 +415,9 @@ public class MainActivity extends Activity implements
 
         intent.putExtra("bundle", b);
 
-        startActivityForResult(intent, 1);
+        if(!loading) {
+            startActivityForResult(intent, 1);
+        }
     }
 
     @Override
@@ -520,6 +544,7 @@ public class MainActivity extends Activity implements
                 }
 
                 new UpdateJSONAsyncTask(getApplicationContext()).execute();
+                setupList();
             }
         };
 
@@ -640,6 +665,8 @@ public class MainActivity extends Activity implements
                             .build();
 
                     file.updateMetadata(mGoogleApiClient, changeSet);
+
+                    recreate();
                 }
                 else {
                     meta = result.getMetadataBuffer().get(0);
@@ -658,6 +685,9 @@ public class MainActivity extends Activity implements
     }
 
     private void setupList() {
+
+        loading = false;
+        progress.dismiss();
 
         List<Player> playerList = ladder.getLadderList();
 
