@@ -7,4 +7,5 @@
     <string name="title_activity_stats">StatsActivity</string>
     <string name="title_activity_settings">Settings Activity</string>
     <string name="title_activity_matches">MatchesActivity</string>
+    <string name="title_activity_rules">Rules Activity</string>
 </resources>

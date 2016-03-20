@@ -2,8 +2,6 @@ package uowtt.ttapplication;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,7 +37,6 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
-
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -232,7 +229,7 @@ public class MainActivity extends Activity implements
                 .setView(edit)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // continue with reset
+                        // continue with deletion
 
                         Log.d("pass", edit.getText().toString());
 
@@ -372,6 +369,13 @@ public class MainActivity extends Activity implements
 
             startActivity(intent);
         }
+    }
+
+    public void startRulesActivity(View v){
+
+        Intent intent = new Intent(this, RulesActivity.class);
+
+        startActivity(intent);
     }
 
     @Override

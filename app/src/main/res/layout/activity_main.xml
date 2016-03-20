@@ -28,6 +28,15 @@
             android:text="STATS"
             android:id="@+id/button4"
             android:onClick="startStatsActivity" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RULES"
+            android:id="@+id/rules_button"
+            android:layout_marginLeft="10dp"
+            android:onClick="startRulesActivity"/>
     </LinearLayout>
 
     <ListView

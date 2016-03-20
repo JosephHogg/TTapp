@@ -47,6 +47,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="uowtt.ttapplication.MainActivity" />
         </activity>
+        <activity
+            android:name=".RulesActivity"
+            android:label="@string/title_activity_rules"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="uowtt.ttapplication.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
