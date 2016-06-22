@@ -226,7 +226,7 @@ public class MainActivity extends Activity implements
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
-                .setMessage("Are you sure you want to reset this player on the ladder?")
+                .setMessage("Are you sure you want to delete "+player.name+" from the ladder?")
                 .setView(edit)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -263,7 +263,7 @@ public class MainActivity extends Activity implements
 
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Are you sure?")
-                .setMessage("Are you sure you want to reset this player on the ladder?")
+                .setMessage("Are you sure you want to reset " + player.name + " on the ladder?")
                 .setView(edit)
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -678,7 +678,7 @@ public class MainActivity extends Activity implements
 
                     file.updateMetadata(mGoogleApiClient, changeSet);
 
-                    recreate();
+                    Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(contentsCallback);
                 }
                 else {
                     meta = result.getMetadataBuffer().get(0);
