@@ -45,17 +45,22 @@ public class Player {
 
         int diff = standing - new_standing;
 
-        update_change(diff);
-
         standing = new_standing;
 
         if(win==1){
+            update_change(diff);
             streak++;
             wins++;
         }
         else if(win == 0){
+            update_change(diff);
             streak = 0;
             losses++;
+        }
+        else if (win == -1){
+            //player reset
+            this.change = new int[3];
+            streak = 0;
         }
     }
 

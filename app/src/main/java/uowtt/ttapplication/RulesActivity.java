@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.webkit.WebView;
 
 public class RulesActivity extends AppCompatActivity {
@@ -12,10 +13,12 @@ public class RulesActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_rules);
 
-        String url =  "file:///android_res/raw/rules.html";
+        String url =  "http://www.sunion.warwick.ac.uk/tabletennis/rules.php";
         webView = (WebView) this.findViewById(R.id.webView);
         webView.getSettings().setDefaultFontSize(20);
         webView.loadUrl(url);

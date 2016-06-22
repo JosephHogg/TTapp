@@ -108,6 +108,7 @@ public class MainActivity extends Activity implements
         progress = new ProgressDialog(this);
         progress.setTitle("Loading");
         progress.setMessage("Wait while loading...");
+        progress.setCanceledOnTouchOutside(false);
         progress.show();
 
     }
@@ -530,6 +531,8 @@ public class MainActivity extends Activity implements
     public void onConnected(Bundle connectionHint) {
 
         final ResultCallback<DriveFolder.DriveFileResult> createJSONCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
+            // Creates a new ladder JSON file in drive if no current ladder is found.
+
             @Override
             public void onResult(DriveFolder.DriveFileResult driveFileResult) {
 
@@ -554,6 +557,8 @@ public class MainActivity extends Activity implements
 
         final ResultCallback<DriveApi.DriveContentsResult> contentsCallback = new
                 ResultCallback<DriveApi.DriveContentsResult>() {
+                    // Create a new Drive file to create a new ladder in.
+
                     @Override
                     public void onResult(DriveApi.DriveContentsResult result) {
                         if (!result.getStatus().isSuccess()) {
@@ -573,6 +578,9 @@ public class MainActivity extends Activity implements
 
 
         final ResultCallback<DriveApi.DriveContentsResult> jsonCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
+            // Parse the JSON file we found from the Drive into the ladder.
+            // Also add player if flag is set.
+
             @Override
             public void onResult(DriveApi.DriveContentsResult contentsResult) {
 
@@ -690,17 +698,20 @@ public class MainActivity extends Activity implements
 
     private void setupList() {
 
-        loading = false;
-        progress.dismiss();
 
         List<Player> playerList = ladder.getLadderList();
 
+        List<String> activePlayers = ladder.getActivePlayers(ladderJSON);
+
         LadderListAdapter lad_adapter = new LadderListAdapter(this, R.layout.ladder_item,
-                playerList);
+                playerList, activePlayers);
 
 
         ListView ladView = (ListView) findViewById(R.id.ladderList);
         ladView.setAdapter(lad_adapter);
+
+        loading = false;
+        progress.dismiss();
 
     }
 

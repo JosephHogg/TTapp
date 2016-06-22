@@ -6,11 +6,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,26 +28,13 @@ public class Ladder{
 
     public String[] topStreaksNames = new String[3];
     public int[] topStreaksValues = new int[3];
+    private List<String> activePlayers;
 
 
     Ladder(){
 
-        /*num_players = 0;
-
-        String[] names = new String[] {"Peco", "Tsukimoto", "Kong", "Kazama", "Joseph",
-                                      "Elliott", "William", "Megan", "Player A", "Player B"};
-
-        Player[] players = new Player[names.length];
-
-        for(int i=0; i < names.length; i++){
-
-            players[i] = new Player(names[i], i, i);
-            num_players++;
-        }
-
-        ladderData = Arrays.asList(players);*/
-
         ladderData = new ArrayList();
+        activePlayers = new ArrayList<>();
 
         num_players = 0;
         tot_matches = 0;
@@ -105,23 +94,6 @@ public class Ladder{
         }
 
         return player;
-    }
-
-    public void check_week(){
-
-        Calendar c = Calendar.getInstance();
-
-        Log.d("date", new Integer(c.get(Calendar.DAY_OF_YEAR)).toString());
-
-        // <0 for case of crossing the new year
-
-        if((c.get(Calendar.DAY_OF_YEAR) - last_week_reset_day) > 7 || (c.get(Calendar.DAY_OF_YEAR) - last_week_reset_day) < 0){
-
-            last_week_reset_day = c.get(Calendar.DAY_OF_YEAR);
-            week_matches = 0;
-
-        }
-
     }
 
     public void update(JSONObject ladderJSON, Match match){
@@ -430,5 +402,54 @@ public class Ladder{
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<String> getActivePlayers(JSONObject ladderJSON) {
+
+        JSONArray matches = null;
+        try {
+            matches = ladderJSON.getJSONArray("matches");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, -14);
+        Date newDate = calendar.getTime();
+        boolean allActive = true;
+
+        for(int i = 0; i < matches.length(); i++){
+
+            JSONObject jMatch = null;
+            String date = null;
+            Date matchDate = null;
+
+            try {
+                jMatch = (JSONObject) matches.get(i);
+                date = jMatch.getString("date");
+                matchDate = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(date);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if(!matchDate.before(newDate)){
+                try {
+                    activePlayers.add(jMatch.getString("opponent"));
+                    activePlayers.add(jMatch.getString("challenger"));
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                allActive = false;
+            }
+
+        }
+
+        if(allActive)
+            return null;
+        else
+            return activePlayers;
     }
 }
